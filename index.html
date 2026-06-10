@@ -102,6 +102,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 .type-contact{background:#fef7e0;color:#b06000}
 .history-content{font-size:13px;color:#333;line-height:1.7;white-space:pre-wrap;word-break:break-all}
 
+/* ===== 撞客防呆 ===== */
+.collision-banner{background:#fff5f4;border:1.5px solid #c5221f;border-radius:12px;padding:12px 14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:10px}
+.collision-banner .ci{font-size:20px;line-height:1.2;flex-shrink:0}
+.collision-banner .ct{font-size:13px;color:#c5221f;font-weight:700;line-height:1.5}
+.collision-banner .cs{font-size:12px;color:#a01b18;font-weight:400;display:block;margin-top:3px;line-height:1.6}
+.badge-collision{background:#7a1512;color:#fff}
+.field-contact span{color:#185FA5;font-weight:600}
+
 /* ===== 填表區 ===== */
 .form-section{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
 .form-section h3{font-size:14px;font-weight:600;color:#1F4E79;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f0f0f0}
@@ -479,6 +487,7 @@ function renderClients(clients) {
           <div class="client-phone">${phone}</div>
         </div>
         <div class="badges">
+          ${c['撞客警示'] ? `<span class="badge badge-collision">⚠撞客</span>` : ''}
           ${needContact ? `<span class="badge badge-alert">待聯繫</span>` : ''}
           ${c['客戶等級'] ? `<span class="badge ${gradeClass(c['客戶等級'])}">${String(c['客戶等級']).substring(0,2)}</span>` : ''}
           ${c['是否成交'] ? `<span class="badge ${statusClass(c['是否成交'])}">${c['是否成交']}</span>` : ''}
@@ -504,6 +513,13 @@ function showDetail(phone) {
   window.scrollTo(0, 0);
   const histories = c['完整歷程'] ? String(c['完整歷程']).split('─────').filter(h => h.trim()) : [];
   document.getElementById('detailContent').innerHTML = `
+    ${c['撞客警示'] ? `
+    <div class="collision-banner">
+      <span class="ci">⚠️</span>
+      <span class="ct">${c['撞客警示']}
+        <span class="cs">此電話有 ${c['首參次數'] || '多'} 筆首次參觀建檔——可能是不同業務各自建檔，或客戶向新業務謊稱首次來訪。請對照下方「接觸業務」與「完整歷程」由您認定歸屬，系統不自動判斷。</span>
+      </span>
+    </div>` : ''}
     <div class="detail-header">
       <div class="detail-name">${c['客戶姓名'] || '未知姓名'}</div>
       <div class="detail-meta">
@@ -513,6 +529,7 @@ function showDetail(phone) {
       </div>
       <div class="detail-grid">
         ${field('負責業務', c['負責業務'] || c['指派業務'])}
+        ${c['接觸業務'] && c['接觸業務'] !== (c['負責業務'] || c['指派業務']) ? `<div class="detail-field field-contact"><label>接觸業務</label><span>${c['接觸業務']}</span></div>` : ''}
         ${field('居住區域', c['居住區域'])}
         ${field('媒體來源', c['媒體來源'])}
         ${field('購屋用途', c['購屋用途'])}
@@ -542,10 +559,10 @@ function showDetail(phone) {
     ${histories.length ? `
     <div class="section-title">完整歷程（${histories.length}筆）</div>
     ${histories.map(h => {
-      const isVisit = h.includes('來訪');
-      const isCall = h.includes('電話') || h.includes('Line') || h.includes('簡訊');
+      const isVisit = h.includes('首次參觀') || h.includes('回訪') || h.includes('來訪');
+      const isCall = !isVisit && (h.includes('電話') || h.includes('追蹤') || h.includes('Line') || h.includes('簡訊'));
       return `<div class="history-card">
-        <span class="history-type ${isVisit ? 'type-visit' : isCall ? 'type-call' : 'type-contact'}">${isVisit ? '來訪' : isCall ? '電話追蹤' : '聯繫'}</span>
+        <span class="history-type ${isVisit ? 'type-visit' : isCall ? 'type-call' : 'type-contact'}">${isVisit ? '來訪' : isCall ? '電話追蹤' : '廣告聯繫'}</span>
         <div class="history-content">${h.trim()}</div>
       </div>`;
     }).join('')}` : ''}

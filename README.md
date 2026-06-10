@@ -345,36 +345,30 @@ function statusClass(s) {
   return 'badge-grey';
 }
 
-// 正規化日期：處理純文字 yyyy-MM-dd 與 gviz「Date(y,m,d)」兩種格式
-function 正規化日期(v) {
+// 日期轉數字（yyyymmdd）供排序，無法解析回傳 0
+// 同時支援：2026/6/10、2026-6-10、2026.6.10、gviz 的 Date(y,m,d)
+function 日期數值(v) {
   const s = String(v || '').trim();
-  if (!s) return '';
-  const m = s.match(/Date\((\d+),(\d+),(\d+)/);
-  if (m) {
-    const mo = String(Number(m[2]) + 1).padStart(2, '0');
-    const d = String(Number(m[3])).padStart(2, '0');
-    return `${m[1]}-${mo}-${d}`;
-  }
-  return s.substring(0, 10);
+  if (!s) return 0;
+  let m = s.match(/Date\((\d+),(\d+),(\d+)/);            // gviz 日期物件（月從 0 起算）
+  if (m) return Number(m[1]) * 10000 + (Number(m[2]) + 1) * 100 + Number(m[3]);
+  m = s.match(/(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/); // 一般年月日格式
+  if (m) return Number(m[1]) * 10000 + Number(m[2]) * 100 + Number(m[3]);
+  return 0;
 }
 
-// 取最新接觸日：來訪／追蹤／首訪三者取最新
+// 取最新接觸日：來訪／追蹤／首訪三者取最新（數字越大越新）
 function 最新接觸日(c) {
-  const dates = [c['最新來訪日期'], c['最新追蹤日期'], c['首次來訪日期']]
-    .map(正規化日期).filter(d => d);
-  if (!dates.length) return '';
-  return dates.sort().pop();
+  return Math.max(
+    日期數值(c['最新來訪日期']),
+    日期數值(c['最新追蹤日期']),
+    日期數值(c['首次來訪日期'])
+  );
 }
 
-// 由新到舊排序（無日期沉底）
+// 由新到舊排序（無日期者數值為 0，自動沉底）
 function 依最新接觸排序(clients) {
-  return clients.sort((a, b) => {
-    const da = 最新接觸日(a), db = 最新接觸日(b);
-    if (!da && !db) return 0;
-    if (!da) return 1;
-    if (!db) return -1;
-    return db.localeCompare(da);
-  });
+  return clients.sort((a, b) => 最新接觸日(b) - 最新接觸日(a));
 }
 
 function loadClients() {

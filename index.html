@@ -77,6 +77,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 .badge-undone{background:#fef7e0;color:#b06000}
 .badge-contacted{background:#e6f4ea;color:#137333}
 .badge-notcontacted{background:#fce8e6;color:#c5221f}
+.card-alert{border-color:#c5221f!important;background:#fff5f4}
+.badge-alert{background:#c5221f;color:#fff}
 .client-info{display:flex;gap:12px;flex-wrap:wrap}
 .info-item{font-size:12px;color:#888}
 .info-item strong{color:#444;font-weight:500}
@@ -306,6 +308,9 @@ function doLogin() {
     document.getElementById('mainPage').classList.remove('hidden');
     document.getElementById('userBadge').textContent = user.name + '（' + (user.role === 'admin' ? '管理者' : '銷售人員') + '）';
     document.getElementById('loginError').classList.add('hidden');
+    // 權限隔離：非管理者隱藏「業務篩選器」（他本來就只看得到自己的客戶）
+    const staffFilter = document.getElementById('filterStaff');
+    if (staffFilter) staffFilter.classList.toggle('hidden', user.role !== 'admin');
     loadClients();
   } else {
     document.getElementById('loginError').classList.remove('hidden');
@@ -377,10 +382,35 @@ function 最新接觸日(c) {
   );
 }
 
-// 由新到舊排序（無日期者數值為 0，自動沉底）
-function 依最新接觸排序(clients) {
-  return clients.sort((a, b) => 最新接觸日(b) - 最新接觸日(a));
+// 排序值：後端「排序鍵」(yyyymmddHHMM) 優先，到分鐘；無則用日期欄×10000 對齊位數
+function 排序值(c) {
+  const k = Number(c['排序鍵']);
+  if (k && !isNaN(k)) {
+    const datePart = Math.floor(k / 10000);   // 取出 yyyymmdd
+    if (datePart > 今日數值) return 0;         // 未來視為異常
+    return k;
+  }
+  return 最新接觸日(c) * 10000;
 }
+
+// 是否為「未聯繫」名單（要釘在最上面催辦）
+function 是未聯繫(c) {
+  return String(c['是否已聯繫']).indexOf('未聯繫') >= 0;
+}
+
+// 兩層排序：未聯繫釘頂（越早進越上）→ 其他依時間新到舊（同天後填在上）
+function 依規則排序(clients) {
+  return clients.sort((a, b) => {
+    const ua = 是未聯繫(a), ub = 是未聯繫(b);
+    if (ua !== ub) return ua ? -1 : 1;        // 未聯繫永遠排前面
+    if (ua) return 排序值(a) - 排序值(b);      // 未聯繫層：越早進(數字小)越上面
+    return 排序值(b) - 排序值(a);              // 其他層：越新(數字大)越上面
+  });
+}
+
+// 今日數值（yyyymmdd），用來排除不合理的未來日期
+// （以下保留舊函式名稱相容性，已不再使用）
+function 正規化日期(v) { return 日期數值(v); }
 
 function loadClients() {
   document.getElementById('clientList').innerHTML = '<div class="loading">正在載入客戶資料...</div>';
@@ -400,7 +430,7 @@ function loadClients() {
           c['負責業務'] === currentUser.staff || c['指派業務'] === currentUser.staff
         );
       }
-      依最新接觸排序(allClients);
+      依規則排序(allClients);
       updateStats();
       renderClients(allClients);
     })
@@ -434,23 +464,25 @@ function doSearch() {
 function renderClients(clients) {
   const list = document.getElementById('clientList');
   const count = document.getElementById('resultCount');
-  count.textContent = `共 ${clients.length} 筆 ·排序v3`;
+  count.textContent = `共 ${clients.length} 筆 ·排序v4`;
   if (!clients.length) { list.innerHTML = '<div class="no-data">沒有符合條件的客戶</div>'; return; }
   const show = clients.slice(0, 80);
   list.innerHTML = show.map(c => {
     const phone = String(c['聯絡電話']);
     const isContacted = String(c['是否已聯繫']).includes('✅');
     const hasContact = c['是否已聯繫'] !== '';
-    return `<div class="client-card" onclick="showDetail('${phone.replace(/'/g,"\\'")}')">
+    const needContact = 是未聯繫(c);
+    return `<div class="client-card${needContact ? ' card-alert' : ''}" onclick="showDetail('${phone.replace(/'/g,"\\'")}')">
       <div class="client-card-top">
         <div>
-          <div class="client-name">${c['客戶姓名'] || '未知姓名'}</div>
+          <div class="client-name">${needContact ? '⚠ ' : ''}${c['客戶姓名'] || '未知姓名'}</div>
           <div class="client-phone">${phone}</div>
         </div>
         <div class="badges">
+          ${needContact ? `<span class="badge badge-alert">待聯繫</span>` : ''}
           ${c['客戶等級'] ? `<span class="badge ${gradeClass(c['客戶等級'])}">${String(c['客戶等級']).substring(0,2)}</span>` : ''}
           ${c['是否成交'] ? `<span class="badge ${statusClass(c['是否成交'])}">${c['是否成交']}</span>` : ''}
-          ${hasContact ? `<span class="badge ${isContacted ? 'badge-contacted' : 'badge-notcontacted'}">${isContacted ? '已聯繫' : '未聯繫'}</span>` : ''}
+          ${(hasContact && !needContact) ? `<span class="badge ${isContacted ? 'badge-contacted' : 'badge-notcontacted'}">${isContacted ? '已聯繫' : '未聯繫'}</span>` : ''}
         </div>
       </div>
       <div class="client-info">

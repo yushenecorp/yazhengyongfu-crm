@@ -345,6 +345,32 @@ function statusClass(s) {
   return 'badge-grey';
 }
 
+// 日期轉數字（yyyymmdd）供排序，無法解析回傳 0
+// 同時支援：2026/6/10、2026-6-10、2026.6.10、gviz 的 Date(y,m,d)
+function 日期數值(v) {
+  const s = String(v || '').trim();
+  if (!s) return 0;
+  let m = s.match(/Date\((\d+),(\d+),(\d+)/);            // gviz 日期物件（月從 0 起算）
+  if (m) return Number(m[1]) * 10000 + (Number(m[2]) + 1) * 100 + Number(m[3]);
+  m = s.match(/(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/); // 一般年月日格式
+  if (m) return Number(m[1]) * 10000 + Number(m[2]) * 100 + Number(m[3]);
+  return 0;
+}
+
+// 取最新接觸日：來訪／追蹤／首訪三者取最新（數字越大越新）
+function 最新接觸日(c) {
+  return Math.max(
+    日期數值(c['最新來訪日期']),
+    日期數值(c['最新追蹤日期']),
+    日期數值(c['首次來訪日期'])
+  );
+}
+
+// 由新到舊排序（無日期者數值為 0，自動沉底）
+function 依最新接觸排序(clients) {
+  return clients.sort((a, b) => 最新接觸日(b) - 最新接觸日(a));
+}
+
 function loadClients() {
   document.getElementById('clientList').innerHTML = '<div class="loading">正在載入客戶資料...</div>';
   fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=客戶總覽&t=${Date.now()}`)
@@ -363,6 +389,7 @@ function loadClients() {
           c['負責業務'] === currentUser.staff || c['指派業務'] === currentUser.staff
         );
       }
+      依最新接觸排序(allClients);
       updateStats();
       renderClients(allClients);
     })
@@ -396,7 +423,7 @@ function doSearch() {
 function renderClients(clients) {
   const list = document.getElementById('clientList');
   const count = document.getElementById('resultCount');
-  count.textContent = `共 ${clients.length} 筆`;
+  count.textContent = `共 ${clients.length} 筆 ·排序v2`;
   if (!clients.length) { list.innerHTML = '<div class="no-data">沒有符合條件的客戶</div>'; return; }
   const show = clients.slice(0, 80);
   list.innerHTML = show.map(c => {

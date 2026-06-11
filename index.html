@@ -110,6 +110,41 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 .badge-collision{background:#7a1512;color:#fff}
 .field-contact span{color:#185FA5;font-weight:600}
 
+/* ===== 客戶階段徽章 ===== */
+.stage-new{background:#eee3c8;color:#7a5b12}
+.stage-contacted{background:#dbe9fb;color:#185fa5}
+.stage-visited{background:#d8efe4;color:#0f6e56}
+.stage-deal{background:#1d9e75;color:#fff}
+.stage-dead{background:#e3e1da;color:#5f5e5a}
+.stage-none{background:#eef0f2;color:#73726c}
+
+/* ===== 追蹤提醒 ===== */
+.badge-followup{background:#ba7517;color:#fff}
+#followupCount{font-size:11px;color:#ba7517;font-weight:700}
+.card-followup{border-left:4px solid #ba7517}
+.followup-banner{background:#faeeda;border:1px solid #ba7517;border-radius:10px;padding:10px 14px;margin-bottom:10px;color:#854f0b;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px}
+.followup-banner .fu-dot{width:8px;height:8px;border-radius:50%;background:#ba7517;display:inline-block;flex-shrink:0}
+.followup-head{padding:14px 4px 6px}
+.followup-title{font-size:17px;font-weight:700;color:#854f0b}
+.followup-sub{font-size:12px;color:#888;margin-top:4px;line-height:1.6}
+
+/* ===== 電話查重框 ===== */
+.dup-box{background:#f4f8ff;border:1px solid #b5d4f4;border-radius:12px;padding:14px;margin-bottom:16px}
+.dup-box-title{font-size:15px;font-weight:700;color:#0c447c;margin-bottom:4px}
+.dup-box-desc{font-size:12px;color:#5f6b7a;margin-bottom:10px;line-height:1.6}
+.dup-search{display:flex;gap:8px}
+.dup-search input{flex:1;padding:10px 12px;border:1px solid #cbd5e0;border-radius:8px;font-size:15px}
+#dupResult{margin-top:10px}
+.dup-warn{color:#a32d2d;font-size:13px}
+.dup-ok{background:#eaf3de;border:1px solid #97c459;border-radius:8px;padding:10px 12px;color:#27500a;font-size:14px;font-weight:600;line-height:1.6}
+.dup-hit{background:#fff5f4;border:1px solid #e24b4a;border-radius:8px;padding:12px}
+.dup-hit-title{font-weight:700;color:#a32d2d;margin-bottom:8px;font-size:14px}
+.dup-row{font-size:13px;color:#333;margin:2px 0}
+.dup-row b{display:inline-block;min-width:42px;color:#888;font-weight:500}
+.dup-collide{margin-top:6px;color:#7a1512;font-weight:700;font-size:13px}
+.dup-note{margin-top:8px;font-size:12px;color:#854f0b;background:#faeeda;border-radius:6px;padding:6px 8px;line-height:1.5}
+.dup-btn{margin-top:8px;background:#185fa5;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer}
+
 /* ===== 填表區 ===== */
 .form-section{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
 .form-section h3{font-size:14px;font-weight:600;color:#1F4E79;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f0f0f0}
@@ -184,6 +219,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 
     <div class="tabs">
       <div class="tab active" onclick="showTab('clients',this)">客戶總覽</div>
+      <div class="tab" onclick="showTab('followup',this)">追蹤提醒<span id="followupCount"></span></div>
       <div class="tab" onclick="showTab('forms',this)">填寫表單</div>
       <div class="tab" onclick="showTab('settings',this)">設定</div>
     </div>
@@ -235,8 +271,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
       </div>
     </div>
 
+    <!-- 追蹤提醒看板 -->
+    <div id="tab-followup" class="hidden">
+      <div class="followup-head">
+        <div class="followup-title">⚠ 14 天未跟進名單</div>
+        <div class="followup-sub">已聯繫未到場、已到場待跟進、名單未聯繫，距最後動作 ≥ 14 天會列在這裡。已成交／無效結案不列入。</div>
+      </div>
+      <div class="result-count" id="followupResultCount"></div>
+      <div id="followupList" class="client-list"></div>
+    </div>
+
     <!-- 填寫表單 -->
     <div id="tab-forms" class="hidden">
+      <div class="dup-box">
+        <div class="dup-box-title">📞 建檔前先查重</div>
+        <div class="dup-box-desc">輸入電話，確認系統裡是否已有這位客戶（避免重複建檔、撞客）。</div>
+        <div class="dup-search">
+          <input type="text" id="dupPhone" placeholder="輸入電話號碼" onkeydown="if(event.key==='Enter')查重()" />
+          <button class="btn-search" onclick="查重()">查重</button>
+        </div>
+        <div id="dupResult"></div>
+      </div>
       <div class="form-section">
         <h3>櫃檯填寫</h3>
         <div class="form-link" onclick="window.open('https://forms.gle/Cv5u5vzjAiKjo5oJ8','_blank')">
@@ -291,9 +346,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 // staff: 銷售人員的名字（必須跟試算表裡「負責業務」欄位一致）
 const USERS = [
   {account:'frankwei', password:'168', name:'副總', role:'admin', staff:null},
-  // 新增人員範例（複製下面這行，修改帳號、密碼、姓名）：
-  // {account:'shiyi', password:'1234', name:'施憶如', role:'staff', staff:'施憶如'},
-  // {account:'qiuying', password:'1234', name:'邱瀠萱', role:'staff', staff:'邱瀠萱'},
+  {account:'royyang', password:'168', name:'副專1', role:'admin', staff:null},
+  {account:'marklin', password:'168', name:'副專2', role:'admin', staff:null},
+  {account:'sarashih', password:'168', name:'施憶如', role:'staff', staff:'施憶如'},
+  {account:'krystalchiu', password:'168', name:'邱瀠萱', role:'staff', staff:'邱瀠萱'},
 ];
 // =====================================================
 // ▲▲▲ 人員設定區域結束 ▲▲▲
@@ -303,6 +359,7 @@ const SHEET_ID = '1G6v8t2coqCBMJu5LDuYacqcZGVdXbpyzcVt48OlFC4k';
 
 let currentUser = null;
 let allClients = [];
+let allClientsFull = [];
 const passwords = {};
 USERS.forEach(u => passwords[u.account] = u.password);
 
@@ -336,10 +393,11 @@ function doLogout() {
 }
 
 function showTab(name, el) {
-  ['clients','forms','settings'].forEach(t => document.getElementById('tab-'+t).classList.add('hidden'));
+  ['clients','followup','forms','settings'].forEach(t => document.getElementById('tab-'+t).classList.add('hidden'));
   document.getElementById('tab-'+name).classList.remove('hidden');
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
+  if (name === 'followup') renderFollowup();
 }
 
 function gradeClass(g) {
@@ -433,14 +491,18 @@ function loadClients() {
         cols.forEach((c, i) => { obj[c] = r.c[i] ? (r.c[i].f || r.c[i].v || '') : ''; });
         return obj;
       }).filter(c => c['聯絡電話'] && String(c['聯絡電話']).length >= 8);
+      allClientsFull = allClients.slice();   // 完整資料（供電話查重跨業務比對）
       if (currentUser.role !== 'admin') {
+        const me = currentUser.staff;
         allClients = allClients.filter(c =>
-          c['負責業務'] === currentUser.staff || c['指派業務'] === currentUser.staff
+          String(c['接觸業務']||'').includes(me) ||
+          c['負責業務'] === me || c['指派業務'] === me
         );
       }
       依規則排序(allClients);
       updateStats();
       renderClients(allClients);
+      updateFollowupCount();
     })
     .catch(err => {
       document.getElementById('clientList').innerHTML = '<div class="no-data">無法載入資料<br>請確認試算表已設為「知道連結的任何人可檢視」</div>';
@@ -475,34 +537,61 @@ function renderClients(clients) {
   count.textContent = `共 ${clients.length} 筆 ·排序v4`;
   if (!clients.length) { list.innerHTML = '<div class="no-data">沒有符合條件的客戶</div>'; return; }
   const show = clients.slice(0, 80);
-  list.innerHTML = show.map(c => {
-    const phone = String(c['聯絡電話']);
-    const isContacted = String(c['是否已聯繫']).includes('✅');
-    const hasContact = c['是否已聯繫'] !== '';
-    const needContact = 是未聯繫(c);
-    return `<div class="client-card${needContact ? ' card-alert' : ''}" onclick="showDetail('${phone.replace(/'/g,"\\'")}')">
+  list.innerHTML = show.map(客戶卡片).join('') + (clients.length > 80 ? `<div class="no-data">顯示前80筆，請用搜尋縮小範圍</div>` : '');
+}
+
+function 階段Class(s){
+  if(s==='已成交') return 'stage-deal';
+  if(s==='無效結案') return 'stage-dead';
+  if(s==='已到場待跟進') return 'stage-visited';
+  if(s==='已聯繫未到場') return 'stage-contacted';
+  if(s==='名單未聯繫') return 'stage-new';
+  return 'stage-none';
+}
+
+function 客戶卡片(c){
+  const phone = String(c['聯絡電話']);
+  const needContact = 是未聯繫(c);
+  const 階段 = c['客戶階段'] || '';
+  const 提醒 = c['追蹤提醒'] || '';
+  return `<div class="client-card${needContact ? ' card-alert' : ''}${提醒?' card-followup':''}" onclick="showDetail('${phone.replace(/'/g,"\\'")}')">
       <div class="client-card-top">
         <div>
           <div class="client-name">${needContact ? '⚠ ' : ''}${c['客戶姓名'] || '未知姓名'}</div>
           <div class="client-phone">${phone}</div>
         </div>
         <div class="badges">
+          ${提醒 ? `<span class="badge badge-followup">${提醒}</span>` : ''}
           ${c['撞客警示'] ? `<span class="badge badge-collision">⚠撞客</span>` : ''}
-          ${needContact ? `<span class="badge badge-alert">待聯繫</span>` : ''}
+          ${階段 ? `<span class="badge ${階段Class(階段)}">${階段}</span>` : ''}
           ${c['客戶等級'] ? `<span class="badge ${gradeClass(c['客戶等級'])}">${String(c['客戶等級']).substring(0,2)}</span>` : ''}
-          ${c['是否成交'] ? `<span class="badge ${statusClass(c['是否成交'])}">${c['是否成交']}</span>` : ''}
-          ${(hasContact && !needContact) ? `<span class="badge ${isContacted ? 'badge-contacted' : 'badge-notcontacted'}">${isContacted ? '已聯繫' : '未聯繫'}</span>` : ''}
+          ${c['是否成交'] && String(c['是否成交']).includes('已') ? `<span class="badge ${statusClass(c['是否成交'])}">${c['是否成交']}</span>` : ''}
         </div>
       </div>
       <div class="client-info">
         ${c['負責業務'] ? `<span class="info-item"><strong>業務</strong> ${c['負責業務']}</span>` : ''}
+        ${c['接觸業務'] && c['接觸業務']!==c['負責業務'] ? `<span class="info-item"><strong>接觸</strong> ${c['接觸業務']}</span>` : ''}
         ${c['居住區域'] ? `<span class="info-item"><strong>區域</strong> ${c['居住區域']}</span>` : ''}
-        ${c['媒體來源'] ? `<span class="info-item"><strong>來源</strong> ${c['媒體來源']}</span>` : ''}
         ${Number(c['來訪次數']) > 0 ? `<span class="info-item"><strong>來訪</strong> ${c['來訪次數']}次</span>` : ''}
-        ${c['最新來訪日期'] ? `<span class="info-item"><strong>最近來訪</strong> ${c['最新來訪日期']}</span>` : ''}
+        ${c['最新來訪日期'] ? `<span class="info-item"><strong>最近</strong> ${c['最新來訪日期']}</span>` : ''}
       </div>
     </div>`;
-  }).join('') + (clients.length > 80 ? `<div class="no-data">顯示前80筆，請用搜尋縮小範圍</div>` : '');
+}
+
+// 追蹤提醒看板：列出 ≥14 天未跟進（依天數多到少）
+function 追蹤天數(c){ const m=String(c['追蹤提醒']||'').match(/(\d+)/); return m?Number(m[1]):0; }
+function updateFollowupCount(){
+  const n = allClients.filter(c => c['追蹤提醒']).length;
+  const el = document.getElementById('followupCount');
+  if (el) el.textContent = n ? ' (' + n + ')' : '';
+}
+function renderFollowup(){
+  const list = document.getElementById('followupList');
+  if (!list) return;
+  const items = allClients.filter(c => c['追蹤提醒']).sort((a,b)=>追蹤天數(b)-追蹤天數(a));
+  const cnt = document.getElementById('followupResultCount');
+  if (cnt) cnt.textContent = '共 ' + items.length + ' 筆需跟進';
+  list.innerHTML = items.length ? items.map(客戶卡片).join('') : '<div class="no-data">目前沒有超過 14 天未跟進的客戶 👍</div>';
 }
 
 function showDetail(phone) {
@@ -513,17 +602,19 @@ function showDetail(phone) {
   window.scrollTo(0, 0);
   const histories = c['完整歷程'] ? String(c['完整歷程']).split('─────').filter(h => h.trim()) : [];
   document.getElementById('detailContent').innerHTML = `
+    ${c['追蹤提醒'] ? `<div class="followup-banner"><i class="fu-dot"></i>${c['追蹤提醒']}　·　階段：${c['客戶階段']||'—'}</div>` : ''}
     ${c['撞客警示'] ? `
     <div class="collision-banner">
       <span class="ci">⚠️</span>
       <span class="ct">${c['撞客警示']}
-        <span class="cs">此電話有 ${c['首參次數'] || '多'} 筆首次參觀建檔——可能是不同業務各自建檔，或客戶向新業務謊稱首次來訪。請對照下方「接觸業務」與「完整歷程」由您認定歸屬，系統不自動判斷。</span>
+        <span class="cs">同一支電話被多位業務／多次接觸——可能不同業務各自建檔，或客戶謊稱新客。請對照「接觸業務」與「完整歷程」由您認定歸屬，系統不自動判斷。</span>
       </span>
     </div>` : ''}
     <div class="detail-header">
       <div class="detail-name">${c['客戶姓名'] || '未知姓名'}</div>
       <div class="detail-meta">
         <span class="detail-phone">${c['聯絡電話']}</span>
+        ${c['客戶階段'] ? `<span class="badge ${階段Class(c['客戶階段'])}">${c['客戶階段']}</span>` : ''}
         ${c['客戶等級'] ? `<span class="badge ${gradeClass(c['客戶等級'])}">${c['客戶等級']}</span>` : ''}
         ${c['是否成交'] ? `<span class="badge ${statusClass(c['是否成交'])}">${c['是否成交']}</span>` : ''}
       </div>
@@ -572,6 +663,29 @@ function showDetail(phone) {
 function field(label, val) {
   if (!val) return '';
   return `<div class="detail-field"><label>${label}</label><span>${val}</span></div>`;
+}
+
+// 電話正規化（與後端一致）：去非數字、886→補0
+function 正規化電話JS(v){let s=String(v||'').replace(/[^\d]/g,'');if(s.indexOf('886')===0&&s.length>=11)s='0'+s.slice(3);return s;}
+
+// 建檔前電話查重（跨全部客戶比對，不受個人篩選限制）
+function 查重(){
+  const raw = document.getElementById('dupPhone').value;
+  const p = 正規化電話JS(raw);
+  const box = document.getElementById('dupResult');
+  if (p.length < 8) { box.innerHTML = '<div class="dup-warn">請輸入完整電話號碼</div>'; return; }
+  const hit = allClientsFull.find(c => 正規化電話JS(c['聯絡電話']) === p);
+  if (!hit) { box.innerHTML = `<div class="dup-ok">✓ 查無此電話（${p}）<br>可視為新客建檔</div>`; return; }
+  const 業務 = hit['接觸業務'] || hit['負責業務'] || hit['指派業務'] || '—';
+  const 我的 = currentUser.role === 'admin' || String(hit['接觸業務']||'').includes(currentUser.staff) || hit['負責業務']===currentUser.staff || hit['指派業務']===currentUser.staff;
+  box.innerHTML = `<div class="dup-hit">
+    <div class="dup-hit-title">⚠ 此電話已存在系統，請勿重複建檔</div>
+    <div class="dup-row"><b>姓名</b>${hit['客戶姓名']||'—'}</div>
+    <div class="dup-row"><b>階段</b>${hit['客戶階段']||'—'}</div>
+    <div class="dup-row"><b>業務</b>${業務}</div>
+    ${hit['撞客警示'] ? `<div class="dup-collide">${hit['撞客警示']}</div>` : ''}
+    ${我的 ? `<button class="dup-btn" onclick="showTab('clients',document.querySelectorAll('.tab')[0]);showDetail('${p}')">看完整資料</button>` : `<div class="dup-note">此客戶在「${業務}」名下，不在您權限內；請洽櫃檯或該業務確認歸屬。</div>`}
+  </div>`;
 }
 
 function backToList() {

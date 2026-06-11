@@ -137,6 +137,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 .qc-grid input,.qc-grid select{padding:10px 12px;border:1px solid #cbd5e0;border-radius:8px;font-size:15px;width:100%;background:#fff}
 .qc-grid input:first-child{grid-column:1 / -1}
 .qc-btn{width:100%}
+/* 待派工 */
+.dispatch-sec{margin-bottom:18px}
+.dispatch-sec-title{font-weight:700;font-size:15px;padding:8px 12px;border-radius:8px;margin-bottom:10px}
+.sec-pri .dispatch-sec-title{background:#fde8e8;color:#b3261e}
+.sec-sec .dispatch-sec-title{background:#eef1f5;color:#475569}
+.dispatch-src{font-size:13px;color:#64748b;margin:10px 2px 6px;font-weight:600}
+.dispatch-sec .client-list{display:block}
+/* 報表 */
+.report-range{display:flex;gap:8px;margin-bottom:14px}
+.rng-btn{flex:1;padding:9px;border:1.5px solid #cbd5e0;background:#fff;border-radius:8px;font-size:14px;font-weight:600;color:#475569;cursor:pointer}
+.rng-btn.active{background:#1F4E79;color:#fff;border-color:#1F4E79}
+.report-copyall{margin-bottom:12px}
+.copy-all{width:100%}
+.report-cat{background:#fff;border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.report-cat-head{display:flex;align-items:center;gap:10px}
+.report-cat-name{font-weight:700;font-size:16px}
+.report-cat-count{background:#1F4E79;color:#fff;border-radius:12px;padding:2px 10px;font-size:13px;font-weight:700}
+.copy-btn{margin-left:auto;background:#eef1f5;border:none;border-radius:7px;padding:6px 12px;font-size:13px;font-weight:600;color:#1F4E79;cursor:pointer}
+.report-media{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.media-chip{background:#f1f5f9;border-radius:8px;padding:4px 10px;font-size:13px;color:#334155}
+.report-toggle{font-size:13px;color:#1F4E79;cursor:pointer;margin-top:6px;font-weight:600}
+.report-detail{margin-top:8px;border-top:1px dashed #e2e8f0;padding-top:8px}
+.report-row{font-size:13px;color:#475569;padding:6px 0;border-bottom:1px solid #f1f5f9}
 .dup-search input{flex:1;padding:10px 12px;border:1px solid #cbd5e0;border-radius:8px;font-size:15px}
 #dupResult{margin-top:10px}
 .dup-warn{color:#a32d2d;font-size:13px}
@@ -224,6 +247,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
     <div class="tabs">
       <div class="tab active" onclick="showTab('clients',this)">客戶總覽</div>
       <div class="tab" onclick="showTab('followup',this)">追蹤提醒<span id="followupCount"></span></div>
+      <div class="tab admin-only" id="tabbtn-dispatch" onclick="showTab('dispatch',this)">待派工<span id="dispatchCount"></span></div>
+      <div class="tab admin-only" id="tabbtn-report" onclick="showTab('report',this)">報表</div>
       <div class="tab" onclick="showTab('forms',this)">填寫表單</div>
       <div class="tab" onclick="showTab('settings',this)">設定</div>
     </div>
@@ -283,6 +308,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
       </div>
       <div class="result-count" id="followupResultCount"></div>
       <div id="followupList" class="client-list"></div>
+    </div>
+
+    <!-- 待派工 -->
+    <div id="tab-dispatch" class="hidden">
+      <div class="followup-head">
+        <div class="followup-title">📋 待派工名單（未指派業務）</div>
+        <div class="followup-sub">指派業務空白者列在這裡。🔴 優先：永富預約名單、FB Leads（最新、效益好）；⚪ 次要：來人／過往來人／來電／Ariel名單（舊名單，新代銷仍要重掃一輪）。目前用 D1 表單「指派給」分配，App 一鍵派工於第二階段。</div>
+      </div>
+      <div class="result-count" id="dispatchResultCount"></div>
+      <div id="dispatchList"></div>
+    </div>
+
+    <!-- 報表 -->
+    <div id="tab-report" class="hidden">
+      <div class="followup-head">
+        <div class="followup-title">📊 來電 / 來人 / 回訪 統計</div>
+        <div class="followup-sub">依填表日期統計各類組數與媒體來源，供日報／週報參考。明細可展開、可一鍵複製文字。</div>
+      </div>
+      <div class="report-range">
+        <button class="rng-btn active" id="rng-today" onclick="setReportRange('today',this)">本日</button>
+        <button class="rng-btn" id="rng-week" onclick="setReportRange('week',this)">本週</button>
+        <button class="rng-btn" id="rng-month" onclick="setReportRange('month',this)">本月</button>
+      </div>
+      <div id="reportBody"><div class="loading">載入中...</div></div>
     </div>
 
     <!-- 填寫表單 -->
@@ -392,6 +441,8 @@ function doLogin() {
     // 權限隔離：非管理者隱藏「業務篩選器」（他本來就只看得到自己的客戶）
     const staffFilter = document.getElementById('filterStaff');
     if (staffFilter) staffFilter.classList.toggle('hidden', user.role !== 'admin');
+    // 權限隔離：待派工、報表只有管理者（櫃檯）看得到
+    document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', user.role !== 'admin'));
     loadClients();
   } else {
     document.getElementById('loginError').classList.remove('hidden');
@@ -409,11 +460,13 @@ function doLogout() {
 }
 
 function showTab(name, el) {
-  ['clients','followup','forms','settings'].forEach(t => document.getElementById('tab-'+t).classList.add('hidden'));
+  ['clients','followup','forms','settings','dispatch','report'].forEach(t => document.getElementById('tab-'+t).classList.add('hidden'));
   document.getElementById('tab-'+name).classList.remove('hidden');
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
   if (name === 'followup') renderFollowup();
+  if (name === 'dispatch') renderDispatch();
+  if (name === 'report') { reportEvents = null; renderReport(); }
 }
 
 function gradeClass(g) {
@@ -608,6 +661,114 @@ function renderFollowup(){
   const cnt = document.getElementById('followupResultCount');
   if (cnt) cnt.textContent = '共 ' + items.length + ' 筆需跟進';
   list.innerHTML = items.length ? items.map(客戶卡片).join('') : '<div class="no-data">目前沒有超過 14 天未跟進的客戶 👍</div>';
+}
+
+// ===== 待派工：指派業務空白者，依來源分優先序 =====
+const 優先來源 = ['永富預約名單','FB Leads'];
+const 次要來源 = ['來人','過往來人','來電','Ariel名單'];
+function renderDispatch(){
+  const box = document.getElementById('dispatchList');
+  if (!box) return;
+  const pending = allClientsFull.filter(c => !String(c['指派業務']||'').trim());
+  document.getElementById('dispatchResultCount').textContent = '待派工共 ' + pending.length + ' 筆';
+  const pri = {}, sec = {}, other = {};
+  pending.forEach(c => {
+    const src = String(c['來電名單來源']||'').trim() || '(無來源)';
+    if (優先來源.includes(src)) (pri[src] = pri[src] || []).push(c);
+    else if (次要來源.includes(src)) (sec[src] = sec[src] || []).push(c);
+    else (other[src] = other[src] || []).push(c);
+  });
+  const sectionHTML = (title, cls, groups) => {
+    const total = Object.keys(groups).reduce((a,k)=>a+groups[k].length,0);
+    if (!total) return '';
+    let h = `<div class="dispatch-sec ${cls}"><div class="dispatch-sec-title">${title}（${total}）</div>`;
+    Object.keys(groups).forEach(src => {
+      if (!groups[src].length) return;
+      h += `<div class="dispatch-src">${src}　${groups[src].length} 筆</div>`;
+      h += groups[src].map(客戶卡片).join('');
+    });
+    return h + '</div>';
+  };
+  let html = sectionHTML('🔴 優先重掃', 'sec-pri', pri) + sectionHTML('⚪ 次要重掃', 'sec-sec', sec);
+  if (Object.keys(other).length) html += sectionHTML('其他來源', 'sec-sec', other);
+  box.innerHTML = html || '<div class="no-data">目前沒有待派工名單 👍</div>';
+}
+
+// ===== 報表：讀「報表事件」表，依日期區間統計 =====
+let reportEvents = null;
+let reportRange = 'today';
+function setReportRange(r, el){
+  reportRange = r;
+  document.querySelectorAll('.rng-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  renderReportNow();
+}
+function renderReport(){
+  if (reportEvents) { renderReportNow(); return; }
+  document.getElementById('reportBody').innerHTML = '<div class="loading">載入中...</div>';
+  fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=報表事件&t=${Date.now()}`)
+    .then(r => r.text())
+    .then(text => {
+      const json = JSON.parse(text.substring(47).slice(0, -2));
+      const cols = json.table.cols.map(c => c.label);
+      reportEvents = json.table.rows.map(r => { const o = {}; cols.forEach((c,i)=>{o[c]=r.c[i]?(r.c[i].f||r.c[i].v||''):'';}); return o; });
+      renderReportNow();
+    })
+    .catch(() => { document.getElementById('reportBody').innerHTML = '<div class="no-data">無法載入報表事件<br>請先在 Apps Script 執行整合（產生「報表事件」分頁），並確認試算表可檢視。</div>'; });
+}
+function 區間數值(r){
+  const now = new Date();
+  const toNum = d => d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+  const todayN = toNum(now);
+  if (r === 'today') return [todayN, todayN];
+  if (r === 'week') { const day = now.getDay()||7; const mon = new Date(now); mon.setDate(now.getDate()-day+1); return [toNum(mon), todayN]; }
+  return [toNum(new Date(now.getFullYear(), now.getMonth(), 1)), todayN];
+}
+function renderReportNow(){
+  const body = document.getElementById('reportBody');
+  if (!reportEvents) return;
+  const [start, end] = 區間數值(reportRange);
+  const inRange = reportEvents.filter(e => { const d = 日期數值(e['日期']); return d && d >= start && d <= end; });
+  const cats = ['來電','來人','回訪'];
+  const allCopy = [];
+  let html = '';
+  cats.forEach(cat => {
+    const evs = inRange.filter(e => e['類別'] === cat);
+    const media = {};
+    evs.forEach(e => { const m = e['媒體來源'] || '(未填)'; media[m] = (media[m]||0)+1; });
+    const mediaKeys = Object.keys(media).sort((a,b)=>media[b]-media[a]);
+    const copyText = `${cat}（${evs.length} 組）\n` + (mediaKeys.length ? mediaKeys.map(m=>`${m}：${media[m]} 組`).join('\n') : '無');
+    allCopy.push(copyText);
+    const id = 'rptd-' + cat;
+    const detail = evs.map(e => reportDetailRow(cat, e)).join('') || '<div class="no-data">此區間無資料</div>';
+    html += `<div class="report-cat">
+      <div class="report-cat-head">
+        <span class="report-cat-name">${cat}</span>
+        <span class="report-cat-count">${evs.length} 組</span>
+        <button class="copy-btn" onclick='copyText(${JSON.stringify(copyText)}, this)'>複製</button>
+      </div>
+      <div class="report-media">${mediaKeys.length ? mediaKeys.map(m=>`<span class="media-chip">${m} ${media[m]}</span>`).join('') : '<span class="media-chip">無</span>'}</div>
+      <div class="report-toggle" onclick="document.getElementById('${id}').classList.toggle('hidden')">▾ 展開明細（${evs.length}）</div>
+      <div id="${id}" class="report-detail hidden">${detail}</div>
+    </div>`;
+  });
+  const rangeLabel = reportRange==='today'?'本日':reportRange==='week'?'本週':'本月';
+  const header = `雅正永富｜${rangeLabel}統計\n`;
+  html = `<div class="report-copyall"><button class="copy-btn copy-all" onclick='copyText(${JSON.stringify(header + allCopy.join('\n\n'))}, this)'>📋 複製全部（貼日報用）</button></div>` + html;
+  body.innerHTML = html;
+}
+function reportDetailRow(cat, e){
+  const f = [ e['客戶姓名'] || '(無名)', e['媒體來源'] || '—' ];
+  if (cat !== '來電') f.push(e['客戶職業'] || '—');
+  f.push(e['居住區域'] || '—');
+  f.push((e['負責業務'] || '—'));
+  if (cat !== '來電') f.push(e['客戶等級'] || '—');
+  f.push(e['購屋用途'] || '—');
+  if (cat !== '來電') f.push(e['預算範圍'] || '—');
+  return `<div class="report-row">${f.join('　|　')}</div>`;
+}
+function copyText(t, btn){
+  navigator.clipboard.writeText(t).then(()=>{ if(btn){const o=btn.textContent;btn.textContent='已複製✓';setTimeout(()=>btn.textContent=o,1500);} }).catch(()=>{});
 }
 
 function showDetail(phone) {

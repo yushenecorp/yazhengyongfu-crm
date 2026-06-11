@@ -144,6 +144,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 .sec-sec .dispatch-sec-title{background:#eef1f5;color:#475569}
 .dispatch-src{font-size:13px;color:#64748b;margin:10px 2px 6px;font-weight:600}
 .dispatch-sec .client-list{display:block}
+.dispatch-item{margin-bottom:10px}
+.assign-bar{display:flex;gap:8px;margin:-4px 2px 0;padding:8px;background:#fff;border-radius:0 0 12px 12px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.assign-sel{flex:1;padding:8px 10px;border:1.5px solid #cbd5e0;border-radius:8px;font-size:14px;background:#fff}
+.assign-btn{padding:8px 16px;background:#1F4E79;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
+.assign-btn:disabled{background:#94a3b8;cursor:default}
 /* 報表 */
 .report-range{display:flex;gap:8px;margin-bottom:14px}
 .rng-btn{flex:1;padding:9px;border:1.5px solid #cbd5e0;background:#fff;border-radius:8px;font-size:14px;font-weight:600;color:#475569;cursor:pointer}
@@ -421,6 +426,9 @@ const USERS = [
 // =====================================================
 
 const SHEET_ID = '1G6v8t2coqCBMJu5LDuYacqcZGVdXbpyzcVt48OlFC4k';
+// 派工寫入端（Apps Script Web App）
+const DISPATCH_URL = 'https://script.google.com/macros/s/AKfycbwIZLU_BVtlzBBiKIitwFPtlpfQwEi9RaeuG-jgmGqndHuAmL446ZtjdgzcfGdHuHxs/exec';
+const DISPATCH_TOKEN = 'yushene-dispatch-2026';
 
 let currentUser = null;
 let allClients = [];
@@ -686,13 +694,63 @@ function renderDispatch(){
     Object.keys(groups).forEach(src => {
       if (!groups[src].length) return;
       h += `<div class="dispatch-src">${src}　${groups[src].length} 筆</div>`;
-      h += groups[src].map(客戶卡片).join('');
+      h += groups[src].map(dispatchItem).join('');
     });
     return h + '</div>';
   };
   let html = sectionHTML('🔴 優先重掃', 'sec-pri', pri) + sectionHTML('⚪ 次要重掃', 'sec-sec', sec);
   if (Object.keys(other).length) html += sectionHTML('其他來源', 'sec-sec', other);
   box.innerHTML = html || '<div class="no-data">目前沒有待派工名單 👍</div>';
+}
+
+// 待派工卡片：客戶卡片 + 分派列（分派只有 frankwei 能用）
+function dispatchItem(c){
+  const phone = 正規化電話JS(c['聯絡電話']);
+  const canAssign = currentUser && currentUser.account === 'frankwei';
+  const bar = canAssign ? `<div class="assign-bar" onclick="event.stopPropagation()">
+      <select class="assign-sel" id="asg-${phone}">
+        <option value="">分派給…</option>
+        <option>施憶如</option><option>邱瀠萱</option><option>櫃檯人員</option><option>業主</option>
+      </select>
+      <button class="assign-btn" id="asgbtn-${phone}" onclick="doAssign('${phone}')">分派</button>
+    </div>` : '';
+  return `<div class="dispatch-item">${客戶卡片(c)}${bar}</div>`;
+}
+
+let assigning = false;
+function doAssign(phone){
+  const sel = document.getElementById('asg-'+phone);
+  const btn = document.getElementById('asgbtn-'+phone);
+  const who = sel ? sel.value : '';
+  if (!who) { alert('請先選擇要分派給誰'); return; }
+  if (assigning) return;
+  assigning = true;
+  if (btn) { btn.textContent = '分派中…'; btn.disabled = true; }
+  fetch(DISPATCH_URL, {
+    method: 'POST',
+    body: JSON.stringify({ token: DISPATCH_TOKEN, action: 'assign', phone: phone, assignee: who })
+  })
+  .then(r => r.json())
+  .then(res => {
+    assigning = false;
+    if (res && res.ok) { reloadAfterAssign(); }
+    else { alert('分派失敗：' + (res && res.error ? res.error : '未知')); if (btn){ btn.textContent='分派'; btn.disabled=false; } }
+  })
+  .catch(e => { assigning = false; alert('分派失敗（網路）：' + e); if (btn){ btn.textContent='分派'; btn.disabled=false; } });
+}
+function reloadAfterAssign(){
+  fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=客戶總覽&t=${Date.now()}`)
+    .then(r => r.text())
+    .then(text => {
+      const json = JSON.parse(text.substring(47).slice(0, -2));
+      const cols = json.table.cols.map(c => c.label);
+      allClients = json.table.rows.map(r => { const o = {}; cols.forEach((c,i)=>{o[c]=r.c[i]?(r.c[i].f||r.c[i].v||''):'';}); return o; }).filter(c => c['聯絡電話'] && String(c['聯絡電話']).length >= 8);
+      allClientsFull = allClients.slice();
+      依規則排序(allClients);
+      updateStats(); updateFollowupCount();
+      renderDispatch();
+    })
+    .catch(() => { renderDispatch(); });
 }
 
 // ===== 報表：讀「報表事件」表，依日期區間統計 =====

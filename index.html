@@ -363,16 +363,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
         <div id="dupResult"></div>
       </div>
       <div class="form-section">
-        <h3>櫃檯填寫</h3>
-        <div class="form-link" onclick="window.open('https://forms.gle/Cv5u5vzjAiKjo5oJ8','_blank')">
-          <div class="form-link-left">
-            <div class="form-icon counter">📋</div>
-            <div><div class="form-link-title">廣告來電名單輸入表</div><div class="form-link-desc">收到廣告來電名單時填寫</div></div>
-          </div>
-          <span class="form-arrow">›</span>
-        </div>
-      </div>
-      <div class="form-section">
         <h3>銷售人員填寫</h3>
         <div class="form-link" onclick="window.open('https://forms.gle/yJLYVzZUYRZNYcMy8','_blank')">
           <div class="form-link-left"><div class="form-icon staff">📞</div><div><div class="form-link-title">廣告名單聯繫回報表</div><div class="form-link-desc">每次電話聯繫廣告名單後填寫</div></div></div>
@@ -780,8 +770,21 @@ function 區間數值(r){
   const toNum = d => d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
   const todayN = toNum(now);
   if (r === 'today') return [todayN, todayN];
-  if (r === 'week') { const day = now.getDay()||7; const mon = new Date(now); mon.setDate(now.getDate()-day+1); return [toNum(mon), todayN]; }
-  return [toNum(new Date(now.getFullYear(), now.getMonth(), 1)), todayN];
+  const dow = (now.getDay() || 7);  // 週一=1 … 週日=7
+  if (r === 'week') {
+    // 本週：本週一～今天
+    const mon = new Date(now); mon.setDate(now.getDate() - dow + 1);
+    return [toNum(mon), todayN];
+  }
+  // 本月（廣告週曆）：整週(一~日)歸給「該週週四所在的月份」
+  // → 月份起點＝該月第一個週四所在那一週的週一
+  const thu = new Date(now); thu.setDate(now.getDate() - dow + 4);  // 本週週四
+  const y = thu.getFullYear(), m = thu.getMonth();
+  const first = new Date(y, m, 1);
+  const fdow = (first.getDay() || 7);
+  const firstThuDay = 1 + ((4 - fdow + 7) % 7);   // 該月第一個週四是幾號
+  const start = new Date(y, m, firstThuDay - 3);  // 往前 3 天＝該週週一
+  return [toNum(start), todayN];
 }
 function renderReportNow(){
   const body = document.getElementById('reportBody');

@@ -245,6 +245,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
       </div>
       <div class="topbar-right">
         <span class="user-badge" id="userBadge"></span>
+        <button class="btn-logout" onclick="loadClients()" title="重新整理">↻ 重新整理</button> 
         <button class="btn-logout" onclick="doLogout()">登出</button>
       </div>
     </div>
@@ -576,6 +577,11 @@ function loadClients() {
       document.getElementById('clientList').innerHTML = '<div class="no-data">無法載入資料<br>請確認試算表已設為「知道連結的任何人可檢視」</div>';
     });
 }
+
+// 切回 App / 分頁時自動重抓（已登入才執行）
+document.addEventListener('visibilitychange', function () {
+  if (document.visibilityState === 'visible' && currentUser) loadClients();
+});
 
 function updateStats() {
   document.getElementById('statTotal').textContent = allClients.length;

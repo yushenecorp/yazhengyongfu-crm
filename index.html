@@ -203,10 +203,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 .result-count{font-size:13px;color:#999;margin-bottom:8px}
 
 @media(max-width:480px){
-  .stats-grid{grid-template-columns:repeat(2,1fr)}
-  .detail-grid{grid-template-columns:1fr}
-  .topbar-title{font-size:13px}
-  .stat-num{font-size:18px}
+.stats-grid{grid-template-columns:repeat(2,1fr)}
+.detail-grid{grid-template-columns:1fr}
+.topbar-title{font-size:13px}
+.stat-num{font-size:18px}
 }
 </style>
 </head>
@@ -214,189 +214,189 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 
 <!-- ===== 登入畫面 ===== -->
 <div id="loginPage">
-  <div class="login-wrap">
-    <div class="login-card">
-      <div class="login-logo">
-        <div class="logo-circle"><span>雅正</span></div>
-        <h1>雅正永富｜客戶管理系統</h1>
-        <p>禹盛開發股份有限公司</p>
-      </div>
-      <div class="form-group">
-        <label>帳號</label>
-        <input type="text" id="loginUser" placeholder="請輸入帳號" autocomplete="username" />
-      </div>
-      <div class="form-group">
-        <label>密碼</label>
-        <input type="password" id="loginPass" placeholder="請輸入密碼" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" />
-      </div>
-      <button class="btn-primary" onclick="doLogin()">登入</button>
-      <div class="login-error hidden" id="loginError">帳號或密碼錯誤，請再試一次</div>
-    </div>
-  </div>
+<div class="login-wrap">
+<div class="login-card">
+<div class="login-logo">
+<div class="logo-circle"><span>雅正</span></div>
+<h1>雅正永富｜客戶管理系統</h1>
+<p>禹盛開發股份有限公司</p>
+</div>
+<div class="form-group">
+<label>帳號</label>
+<input type="text" id="loginUser" placeholder="請輸入帳號" autocomplete="username" />
+</div>
+<div class="form-group">
+<label>密碼</label>
+<input type="password" id="loginPass" placeholder="請輸入密碼" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" />
+</div>
+<button class="btn-primary" onclick="doLogin()">登入</button>
+<div class="login-error hidden" id="loginError">帳號或密碼錯誤，請再試一次</div>
+</div>
+</div>
 </div>
 
 <!-- ===== 主畫面 ===== -->
 <div id="mainPage" class="hidden">
-  <div class="app">
-    <div class="topbar">
-      <div class="topbar-left">
-        <div class="topbar-logo"><span>雅正</span></div>
-        <span class="topbar-title">雅正永富｜客戶管理</span>
-      </div>
-      <div class="topbar-right">
-        <span class="user-badge" id="userBadge"></span>
-        <button class="btn-logout" onclick="loadClients()" title="重新整理">↻ 重新整理</button> 
-        <button class="btn-logout" onclick="doLogout()">登出</button>
-      </div>
-    </div>
+<div class="app">
+<div class="topbar">
+<div class="topbar-left">
+<div class="topbar-logo"><span>雅正</span></div>
+<span class="topbar-title">雅正永富｜客戶管理</span>
+</div>
+<div class="topbar-right">
+<span class="user-badge" id="userBadge"></span>
+<button class="btn-logout" onclick="重新整理()" title="重新整理">↻ 重新整理</button>
+<button class="btn-logout" onclick="doLogout()">登出</button>
+</div>
+</div>
 
-    <div class="tabs">
-      <div class="tab active" id="tabbtn-clients" onclick="showTab('clients',this)">客戶總覽</div>
-      <div class="tab" id="tabbtn-followup" onclick="showTab('followup',this)">追蹤提醒<span id="followupCount"></span></div>
-      <div class="tab admin-only" id="tabbtn-dispatch" onclick="showTab('dispatch',this)">待派工<span id="dispatchCount"></span></div>
-      <div class="tab admin-only" id="tabbtn-report" onclick="showTab('report',this)">報表</div>
-      <div class="tab" id="tabbtn-forms" onclick="showTab('forms',this)">填寫表單</div>
-      <div class="tab" id="tabbtn-settings" onclick="showTab('settings',this)">設定</div>
-    </div>
+<div class="tabs">
+<div class="tab active" id="tabbtn-clients" onclick="showTab('clients',this)">客戶總覽</div>
+<div class="tab" id="tabbtn-followup" onclick="showTab('followup',this)">追蹤提醒<span id="followupCount"></span></div>
+<div class="tab admin-only" id="tabbtn-dispatch" onclick="showTab('dispatch',this)">待派工<span id="dispatchCount"></span></div>
+<div class="tab admin-only" id="tabbtn-report" onclick="showTab('report',this)">報表</div>
+<div class="tab" id="tabbtn-forms" onclick="showTab('forms',this)">填寫表單</div>
+<div class="tab" id="tabbtn-settings" onclick="showTab('settings',this)">設定</div>
+</div>
 
-    <!-- 客戶總覽 -->
-    <div id="tab-clients">
-      <div id="clientListView">
-        <div class="stats-grid">
-          <div class="stat-card"><div class="stat-num" id="statTotal">-</div><div class="stat-label">總客戶數</div></div>
-          <div class="stat-card"><div class="stat-num" id="statVisited">-</div><div class="stat-label">已來訪</div></div>
-          <div class="stat-card"><div class="stat-num" id="statContacted">-</div><div class="stat-label">已聯繫</div></div>
-          <div class="stat-card"><div class="stat-num" id="statDone">-</div><div class="stat-label">已成交</div></div>
-        </div>
-        <div class="search-bar">
-          <input type="text" id="searchInput" placeholder="電話號碼或姓名..." onkeydown="if(event.key==='Enter')doSearch()" />
-          <button class="btn-search" onclick="doSearch()">搜尋</button>
-        </div>
-        <div class="filter-bar">
-          <select class="filter-select" id="filterGrade" onchange="doSearch()">
-            <option value="">全部等級</option>
-            <option value="A">A級</option>
-            <option value="B">B級</option>
-            <option value="C">C級</option>
-          </select>
-          <select class="filter-select" id="filterStatus" onchange="doSearch()">
-            <option value="">全部狀態</option>
-            <option value="已下訂">已下訂</option>
-            <option value="已簽約">已簽約</option>
-            <option value="未成交">未成交</option>
-          </select>
-          <!-- ▼▼▼ 新增業務人員請在這裡加一行 ▼▼▼ -->
-          <select class="filter-select" id="filterStaff" onchange="doSearch()">
-            <option value="">全部業務</option>
-            <option value="施憶如">施憶如</option>
-            <option value="邱瀠萱">邱瀠萱</option>
-            <option value="櫃檯人員">櫃檯人員</option>
-            <option value="業主">業主</option>
-          </select>
-          <!-- ▲▲▲ 新增業務人員請在這裡加一行 ▲▲▲ -->
-        </div>
-        <div class="result-count" id="resultCount"></div>
-        <div id="clientList" class="client-list">
-          <div class="loading">正在載入客戶資料...</div>
-        </div>
-      </div>
-      <div id="clientDetailView" class="hidden">
-        <div class="detail-back" onclick="backToList()">← 返回列表</div>
-        <div id="detailContent"></div>
-      </div>
-    </div>
+<!-- 客戶總覽 -->
+<div id="tab-clients">
+<div id="clientListView">
+<div class="stats-grid">
+<div class="stat-card"><div class="stat-num" id="statTotal">-</div><div class="stat-label">總客戶數</div></div>
+<div class="stat-card"><div class="stat-num" id="statVisited">-</div><div class="stat-label">已來訪</div></div>
+<div class="stat-card"><div class="stat-num" id="statContacted">-</div><div class="stat-label">已聯繫</div></div>
+<div class="stat-card"><div class="stat-num" id="statDone">-</div><div class="stat-label">已成交</div></div>
+</div>
+<div class="search-bar">
+<input type="text" id="searchInput" placeholder="電話號碼或姓名..." onkeydown="if(event.key==='Enter')doSearch()" />
+<button class="btn-search" onclick="doSearch()">搜尋</button>
+</div>
+<div class="filter-bar">
+<select class="filter-select" id="filterGrade" onchange="doSearch()">
+<option value="">全部等級</option>
+<option value="A">A級</option>
+<option value="B">B級</option>
+<option value="C">C級</option>
+</select>
+<select class="filter-select" id="filterStatus" onchange="doSearch()">
+<option value="">全部狀態</option>
+<option value="已下訂">已下訂</option>
+<option value="已簽約">已簽約</option>
+<option value="未成交">未成交</option>
+</select>
+<!-- ▼▼▼ 新增業務人員請在這裡加一行 ▼▼▼ -->
+<select class="filter-select" id="filterStaff" onchange="doSearch()">
+<option value="">全部業務</option>
+<option value="施憶如">施憶如</option>
+<option value="邱瀠萱">邱瀠萱</option>
+<option value="櫃檯人員">櫃檯人員</option>
+<option value="業主">業主</option>
+</select>
+<!-- ▲▲▲ 新增業務人員請在這裡加一行 ▲▲▲ -->
+</div>
+<div class="result-count" id="resultCount"></div>
+<div id="clientList" class="client-list">
+<div class="loading">正在載入客戶資料...</div>
+</div>
+</div>
+<div id="clientDetailView" class="hidden">
+<div class="detail-back" onclick="backToList()">← 返回列表</div>
+<div id="detailContent"></div>
+</div>
+</div>
 
-    <!-- 追蹤提醒看板 -->
-    <div id="tab-followup" class="hidden">
-      <div class="followup-head">
-        <div class="followup-title">⚠ 14 天未跟進名單</div>
-        <div class="followup-sub">已聯繫未到場、已到場待跟進、名單未聯繫，距最後動作 ≥ 14 天會列在這裡。已成交／無效結案不列入。</div>
-      </div>
-      <div class="result-count" id="followupResultCount"></div>
-      <div id="followupList" class="client-list"></div>
-    </div>
+<!-- 追蹤提醒看板 -->
+<div id="tab-followup" class="hidden">
+<div class="followup-head">
+<div class="followup-title">⚠ 14 天未跟進名單</div>
+<div class="followup-sub">已聯繫未到場、已到場待跟進、名單未聯繫，距最後動作 ≥ 14 天會列在這裡。已成交／無效結案不列入。</div>
+</div>
+<div class="result-count" id="followupResultCount"></div>
+<div id="followupList" class="client-list"></div>
+</div>
 
-    <!-- 待派工 -->
-    <div id="tab-dispatch" class="hidden">
-      <div class="followup-head">
-        <div class="followup-title">📋 待派工名單（未指派業務）</div>
-        <div class="followup-sub">指派業務空白者列在這裡。🔴 優先：永富預約名單、FB Leads（最新、效益好）；⚪ 次要：來人／過往來人／來電／Ariel名單（舊名單，新代銷仍要重掃一輪）。目前用 D1 表單「指派給」分配，App 一鍵派工於第二階段。</div>
-      </div>
-      <div class="result-count" id="dispatchResultCount"></div>
-      <div id="dispatchList"></div>
-    </div>
+<!-- 待派工 -->
+<div id="tab-dispatch" class="hidden">
+<div class="followup-head">
+<div class="followup-title">📋 待派工名單（未指派業務）</div>
+<div class="followup-sub">指派業務空白者列在這裡。🔴 優先：永富預約名單、FB Leads（最新、效益好）；⚪ 次要：來人／過往來人／來電／Ariel名單（舊名單，新代銷仍要重掃一輪）。目前用 D1 表單「指派給」分配，App 一鍵派工於第二階段。</div>
+</div>
+<div class="result-count" id="dispatchResultCount"></div>
+<div id="dispatchList"></div>
+</div>
 
-    <!-- 報表 -->
-    <div id="tab-report" class="hidden">
-      <div class="followup-head">
-        <div class="followup-title">📊 來電 / 來人 / 回訪 統計</div>
-        <div class="followup-sub">依填表日期統計各類組數與媒體來源，供日報／週報參考。明細可展開、可一鍵複製文字。</div>
-      </div>
-      <div class="report-range">
-        <button class="rng-btn active" id="rng-today" onclick="setReportRange('today',this)">本日</button>
-        <button class="rng-btn" id="rng-week" onclick="setReportRange('week',this)">本週</button>
-        <button class="rng-btn" id="rng-month" onclick="setReportRange('month',this)">本月</button>
-      </div>
-      <div id="reportBody"><div class="loading">載入中...</div></div>
-    </div>
+<!-- 報表 -->
+<div id="tab-report" class="hidden">
+<div class="followup-head">
+<div class="followup-title">📊 來電 / 來人 / 回訪 統計</div>
+<div class="followup-sub">依填表日期統計各類組數與媒體來源，供日報／週報參考。明細可展開、可一鍵複製文字。</div>
+</div>
+<div class="report-range">
+<button class="rng-btn active" id="rng-today" onclick="setReportRange('today',this)">本日</button>
+<button class="rng-btn" id="rng-week" onclick="setReportRange('week',this)">本週</button>
+<button class="rng-btn" id="rng-month" onclick="setReportRange('month',this)">本月</button>
+</div>
+<div id="reportBody"><div class="loading">載入中...</div></div>
+</div>
 
-    <!-- 填寫表單 -->
-    <div id="tab-forms" class="hidden">
-      <div class="dup-box">
-        <div class="dup-box-title">📞 快速建名單（自動查重）</div>
-        <div class="dup-box-desc">輸入資料 → 先查重 → 新客戶一鍵開啟「已帶好資料」的名單表單，只要再選「指派給」按送出即可。取代手記備忘錄、避免重複。</div>
-        <div class="qc-grid">
-          <input type="text" id="qcPhone" placeholder="聯絡電話 *" onblur="查重提示()" />
-          <input type="text" id="qcName" placeholder="客戶姓名" />
-          <input type="text" id="qcArea" placeholder="居住區域" />
-          <select id="qcMedia">
-            <option value="">媒體來源</option>
-            <option>網路</option><option>介紹</option><option>會館</option><option>基地</option>
-            <option>新聞稿</option><option>簡訊</option><option>591</option><option>樂居</option>
-          </select>
-          <select id="qcPurpose">
-            <option value="">購屋用途</option>
-            <option>自住</option><option>投資</option><option>換屋</option>
-            <option>置產</option><option>首購</option><option>其他</option>
-          </select>
-        </div>
-        <button class="btn-search qc-btn" onclick="查重建名單()">查重並建立名單</button>
-        <div id="dupResult"></div>
-      </div>
-      <div class="form-section">
-        <h3>銷售人員填寫</h3>
-        <div class="form-link" onclick="window.open('https://forms.gle/yJLYVzZUYRZNYcMy8','_blank')">
-          <div class="form-link-left"><div class="form-icon staff">📞</div><div><div class="form-link-title">廣告名單聯繫回報表</div><div class="form-link-desc">每次電話聯繫廣告名單後填寫</div></div></div>
-          <span class="form-arrow">›</span>
-        </div>
-        <div class="form-link" onclick="window.open('https://forms.gle/rUSfQ7Wk8BAWZJrY8','_blank')">
-          <div class="form-link-left"><div class="form-icon staff">🏠</div><div><div class="form-link-title">客戶首參資料建立表</div><div class="form-link-desc">客人首次來現場後填寫</div></div></div>
-          <span class="form-arrow">›</span>
-        </div>
-        <div class="form-link" onclick="window.open('https://forms.gle/2UzpKfNpEbsSuTRN7','_blank')">
-          <div class="form-link-left"><div class="form-icon staff">🔄</div><div><div class="form-link-title">客戶回訪更新表</div><div class="form-link-desc">客人第二次以上來現場後填寫</div></div></div>
-          <span class="form-arrow">›</span>
-        </div>
-        <div class="form-link" onclick="window.open('https://forms.gle/doM1nRAwSCHYdcJf9','_blank')">
-          <div class="form-link-left"><div class="form-icon staff">📱</div><div><div class="form-link-title">客戶電話追蹤紀錄表</div><div class="form-link-desc">電話追蹤已來過現場的客人後填寫</div></div></div>
-          <span class="form-arrow">›</span>
-        </div>
-      </div>
-    </div>
+<!-- 填寫表單 -->
+<div id="tab-forms" class="hidden">
+<div class="dup-box">
+<div class="dup-box-title">📞 快速建名單（自動查重）</div>
+<div class="dup-box-desc">輸入資料 → 先查重 → 新客戶直接建檔進「待派工」，再到「待派工」分頁分配給業務。取代手記備忘錄、避免重複。</div>
+<div class="qc-grid">
+<input type="text" id="qcPhone" placeholder="聯絡電話 *" onblur="查重提示()" />
+<input type="text" id="qcName" placeholder="客戶姓名" />
+<input type="text" id="qcArea" placeholder="居住區域" />
+<select id="qcMedia">
+<option value="">媒體來源</option>
+<option>網路</option><option>介紹</option><option>會館</option><option>基地</option>
+<option>新聞稿</option><option>簡訊</option><option>591</option><option>樂居</option>
+</select>
+<select id="qcPurpose">
+<option value="">購屋用途</option>
+<option>自住</option><option>投資</option><option>換屋</option>
+<option>置產</option><option>首購</option><option>其他</option>
+</select>
+</div>
+<button class="btn-search qc-btn" onclick="查重建名單()">查重並建立名單</button>
+<div id="dupResult"></div>
+</div>
+<div class="form-section">
+<h3>銷售人員填寫</h3>
+<div class="form-link" onclick="window.open('https://forms.gle/yJLYVzZUYRZNYcMy8','_blank')">
+<div class="form-link-left"><div class="form-icon staff">📞</div><div><div class="form-link-title">廣告名單聯繫回報表</div><div class="form-link-desc">每次電話聯繫廣告名單後填寫</div></div></div>
+<span class="form-arrow">›</span>
+</div>
+<div class="form-link" onclick="window.open('https://forms.gle/rUSfQ7Wk8BAWZJrY8','_blank')">
+<div class="form-link-left"><div class="form-icon staff">🏠</div><div><div class="form-link-title">客戶首參資料建立表</div><div class="form-link-desc">客人首次來現場後填寫</div></div></div>
+<span class="form-arrow">›</span>
+</div>
+<div class="form-link" onclick="window.open('https://forms.gle/2UzpKfNpEbsSuTRN7','_blank')">
+<div class="form-link-left"><div class="form-icon staff">🔄</div><div><div class="form-link-title">客戶回訪更新表</div><div class="form-link-desc">客人第二次以上來現場後填寫</div></div></div>
+<span class="form-arrow">›</span>
+</div>
+<div class="form-link" onclick="window.open('https://forms.gle/doM1nRAwSCHYdcJf9','_blank')">
+<div class="form-link-left"><div class="form-icon staff">📱</div><div><div class="form-link-title">客戶電話追蹤紀錄表</div><div class="form-link-desc">電話追蹤已來過現場的客人後填寫</div></div></div>
+<span class="form-arrow">›</span>
+</div>
+</div>
+</div>
 
-    <!-- 設定 -->
-    <div id="tab-settings" class="hidden">
-      <div class="settings-card">
-        <h3>修改密碼</h3>
-        <div class="form-group"><label>目前密碼</label><input type="password" id="oldPwd" placeholder="請輸入目前密碼" /></div>
-        <div class="form-group"><label>新密碼</label><input type="password" id="newPwd" placeholder="請輸入新密碼" /></div>
-        <div class="form-group"><label>確認新密碼</label><input type="password" id="confirmPwd" placeholder="請再輸入一次新密碼" /></div>
-        <button class="btn-save" onclick="changePwd()">儲存變更</button>
-        <div class="success-msg hidden" id="pwdMsg">密碼已更新</div>
-        <div class="login-error hidden" id="pwdError"></div>
-      </div>
-    </div>
-  </div>
+<!-- 設定 -->
+<div id="tab-settings" class="hidden">
+<div class="settings-card">
+<h3>修改密碼</h3>
+<div class="form-group"><label>目前密碼</label><input type="password" id="oldPwd" placeholder="請輸入目前密碼" /></div>
+<div class="form-group"><label>新密碼</label><input type="password" id="newPwd" placeholder="請輸入新密碼" /></div>
+<div class="form-group"><label>確認新密碼</label><input type="password" id="confirmPwd" placeholder="請再輸入一次新密碼" /></div>
+<button class="btn-save" onclick="changePwd()">儲存變更</button>
+<div class="success-msg hidden" id="pwdMsg">密碼已更新</div>
+<div class="login-error hidden" id="pwdError"></div>
+</div>
+</div>
+</div>
 </div>
 
 <script>
@@ -406,11 +406,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 // role: 'admin' = 管理者（看全部）, 'staff' = 銷售人員（只看自己）
 // staff: 銷售人員的名字（必須跟試算表裡「負責業務」欄位一致）
 const USERS = [
-  {account:'frankwei', password:'168', name:'副總', role:'admin', staff:null},
-  {account:'royyang', password:'168', name:'副專1', role:'admin', staff:null},
-  {account:'marklin', password:'168', name:'副專2', role:'admin', staff:null},
-  {account:'sarashih', password:'168', name:'施憶如', role:'staff', staff:'施憶如'},
-  {account:'krystalchiu', password:'168', name:'邱瀠萱', role:'staff', staff:'邱瀠萱'},
+{account:'frankwei', password:'168', name:'副總', role:'admin', staff:null},
+{account:'royyang', password:'168', name:'副專1', role:'admin', staff:null},
+{account:'marklin', password:'168', name:'副專2', role:'admin', staff:null},
+{account:'sarashih', password:'168', name:'施憶如', role:'staff', staff:'施憶如'},
+{account:'krystalchiu', password:'168', name:'邱瀠萱', role:'staff', staff:'邱瀠萱'},
 ];
 // =====================================================
 // ▲▲▲ 人員設定區域結束 ▲▲▲
@@ -428,586 +428,607 @@ const passwords = {};
 USERS.forEach(u => passwords[u.account] = u.password);
 
 function doLogin() {
-  const acc = document.getElementById('loginUser').value.trim();
-  const pwd = document.getElementById('loginPass').value;
-  const user = USERS.find(u => u.account === acc && (passwords[u.account] || u.password) === pwd);
-  if (user) {
-    currentUser = user;
-    document.getElementById('loginPage').classList.add('hidden');
-    document.getElementById('mainPage').classList.remove('hidden');
-    document.getElementById('userBadge').textContent = user.name + '（' + (user.role === 'admin' ? '管理者' : '銷售人員') + '）';
-    document.getElementById('loginError').classList.add('hidden');
-    // 權限隔離：非管理者隱藏「業務篩選器」（他本來就只看得到自己的客戶）
-    const staffFilter = document.getElementById('filterStaff');
-    if (staffFilter) staffFilter.classList.toggle('hidden', user.role !== 'admin');
-    // 權限隔離：待派工、報表只有管理者（櫃檯）看得到
-    document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', user.role !== 'admin'));
-    loadClients();
-  } else {
-    document.getElementById('loginError').classList.remove('hidden');
-  }
+const acc = document.getElementById('loginUser').value.trim();
+const pwd = document.getElementById('loginPass').value;
+const user = USERS.find(u => u.account === acc && (passwords[u.account] || u.password) === pwd);
+if (user) {
+currentUser = user;
+document.getElementById('loginPage').classList.add('hidden');
+document.getElementById('mainPage').classList.remove('hidden');
+document.getElementById('userBadge').textContent = user.name + '（' + (user.role === 'admin' ? '管理者' : '銷售人員') + '）';
+document.getElementById('loginError').classList.add('hidden');
+// 權限隔離：非管理者隱藏「業務篩選器」（他本來就只看得到自己的客戶）
+const staffFilter = document.getElementById('filterStaff');
+if (staffFilter) staffFilter.classList.toggle('hidden', user.role !== 'admin');
+// 權限隔離：待派工、報表只有管理者（櫃檯）看得到
+document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', user.role !== 'admin'));
+loadClients();
+} else {
+document.getElementById('loginError').classList.remove('hidden');
+}
 }
 
 function doLogout() {
-  currentUser = null;
-  allClients = [];
-  document.getElementById('loginPage').classList.remove('hidden');
-  document.getElementById('mainPage').classList.add('hidden');
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginPass').value = '';
-  showTab('clients', document.querySelector('.tab'));
+currentUser = null;
+allClients = [];
+document.getElementById('loginPage').classList.remove('hidden');
+document.getElementById('mainPage').classList.add('hidden');
+document.getElementById('loginUser').value = '';
+document.getElementById('loginPass').value = '';
+showTab('clients', document.querySelector('.tab'));
 }
 
 function showTab(name, el) {
-  ['clients','followup','forms','settings','dispatch','report'].forEach(t => document.getElementById('tab-'+t).classList.add('hidden'));
-  document.getElementById('tab-'+name).classList.remove('hidden');
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  const btn = el || document.getElementById('tabbtn-'+name);
-  if (btn) btn.classList.add('active');
-  if (name === 'followup') renderFollowup();
-  if (name === 'dispatch') renderDispatch();
-  if (name === 'report') { reportEvents = null; renderReport(); }
+['clients','followup','forms','settings','dispatch','report'].forEach(t => document.getElementById('tab-'+t).classList.add('hidden'));
+document.getElementById('tab-'+name).classList.remove('hidden');
+document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+const btn = el || document.getElementById('tabbtn-'+name);
+if (btn) btn.classList.add('active');
+if (name === 'followup') renderFollowup();
+if (name === 'dispatch') renderDispatch();
+if (name === 'report') { reportEvents = null; renderReport(); }
 }
 
 function gradeClass(g) {
-  if (!g) return 'badge-grey';
-  if (g.includes('A')) return 'badge-a';
-  if (g.includes('B')) return 'badge-b';
-  if (g.includes('C')) return 'badge-c';
-  return 'badge-grey';
+if (!g) return 'badge-grey';
+if (g.includes('A')) return 'badge-a';
+if (g.includes('B')) return 'badge-b';
+if (g.includes('C')) return 'badge-c';
+return 'badge-grey';
 }
 
 function statusClass(s) {
-  if (!s) return '';
-  if (s.includes('已簽約')) return 'badge-signed';
-  if (s.includes('已下訂')) return 'badge-ordered';
-  if (s.includes('未成交')) return 'badge-undone';
-  return 'badge-grey';
+if (!s) return '';
+if (s.includes('已簽約')) return 'badge-signed';
+if (s.includes('已下訂')) return 'badge-ordered';
+if (s.includes('未成交')) return 'badge-undone';
+return 'badge-grey';
 }
 
 // 今日數值（yyyymmdd），用來排除不合理的未來日期
 const 今日數值 = (function () {
-  const d = new Date();
-  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+const d = new Date();
+return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
 })();
 
 // 日期轉數字（yyyymmdd）供排序，無法解析回傳 0
 // 同時支援：2026/6/10、2026-6-10、2026.6.10、gviz 的 Date(y,m,d)
 function 日期數值(v) {
-  const s = String(v || '').trim();
-  if (!s) return 0;
-  let n = 0;
-  let m = s.match(/Date\((\d+),(\d+),(\d+)/);            // gviz 日期物件（月從 0 起算）
-  if (m) {
-    n = Number(m[1]) * 10000 + (Number(m[2]) + 1) * 100 + Number(m[3]);
-  } else {
-    m = s.match(/(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/); // 一般年月日格式
-    if (m) n = Number(m[1]) * 10000 + Number(m[2]) * 100 + Number(m[3]);
-  }
-  if (n > 今日數值) return 0;  // 未來日期視為無效（多半是打錯年份），不讓它衝到最上面
-  return n;
+const s = String(v || '').trim();
+if (!s) return 0;
+let n = 0;
+let m = s.match(/Date\((\d+),(\d+),(\d+)/); // gviz 日期物件（月從 0 起算）
+if (m) {
+n = Number(m[1]) * 10000 + (Number(m[2]) + 1) * 100 + Number(m[3]);
+} else {
+m = s.match(/(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})/); // 一般年月日格式
+if (m) n = Number(m[1]) * 10000 + Number(m[2]) * 100 + Number(m[3]);
+}
+if (n > 今日數值) return 0; // 未來日期視為無效（多半是打錯年份），不讓它衝到最上面
+return n;
 }
 
 // 取最新接觸日：來訪／追蹤／首訪三者取最新（數字越大越新）
 function 最新接觸日(c) {
-  return Math.max(
-    日期數值(c['最新來訪日期']),
-    日期數值(c['最新追蹤日期']),
-    日期數值(c['首次來訪日期'])
-  );
+return Math.max(
+日期數值(c['最新來訪日期']),
+日期數值(c['最新追蹤日期']),
+日期數值(c['首次來訪日期'])
+);
 }
 
 // 排序值：後端「排序鍵」(yyyymmddHHMM) 優先，到分鐘；無則用日期欄×10000 對齊位數
 function 排序值(c) {
-  const k = Number(c['排序鍵']);
-  if (k && !isNaN(k)) {
-    const datePart = Math.floor(k / 10000);   // 取出 yyyymmdd
-    if (datePart > 今日數值) return 0;         // 未來視為異常
-    return k;
-  }
-  return 最新接觸日(c) * 10000;
+const k = Number(c['排序鍵']);
+if (k && !isNaN(k)) {
+const datePart = Math.floor(k / 10000); // 取出 yyyymmdd
+if (datePart > 今日數值) return 0; // 未來視為異常
+return k;
+}
+return 最新接觸日(c) * 10000;
 }
 
 // 是否為「未聯繫」名單（要釘在最上面催辦）
 function 是未聯繫(c) {
-  return String(c['是否已聯繫']).indexOf('未聯繫') >= 0;
+return String(c['是否已聯繫']).indexOf('未聯繫') >= 0;
 }
 
 // 兩層排序：未聯繫釘頂（越早進越上）→ 其他依時間新到舊（同天後填在上）
 function 依規則排序(clients) {
-  return clients.sort((a, b) => {
-    const ua = 是未聯繫(a), ub = 是未聯繫(b);
-    if (ua !== ub) return ua ? -1 : 1;        // 未聯繫永遠排前面
-    if (ua) return 排序值(a) - 排序值(b);      // 未聯繫層：越早進(數字小)越上面
-    return 排序值(b) - 排序值(a);              // 其他層：越新(數字大)越上面
-  });
+return clients.sort((a, b) => {
+const ua = 是未聯繫(a), ub = 是未聯繫(b);
+if (ua !== ub) return ua ? -1 : 1; // 未聯繫永遠排前面
+if (ua) return 排序值(a) - 排序值(b); // 未聯繫層：越早進(數字小)越上面
+return 排序值(b) - 排序值(a); // 其他層：越新(數字大)越上面
+});
 }
 
 // 今日數值（yyyymmdd），用來排除不合理的未來日期
 // （以下保留舊函式名稱相容性，已不再使用）
 function 正規化日期(v) { return 日期數值(v); }
 
-function loadClients() {
-  document.getElementById('clientList').innerHTML = '<div class="loading">正在載入客戶資料...</div>';
-  fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=客戶總覽&t=${Date.now()}`)
-    .then(r => r.text())
-    .then(text => {
-      const json = JSON.parse(text.substring(47).slice(0, -2));
-      const cols = json.table.cols.map(c => c.label);
-      const rows = json.table.rows;
-      allClients = rows.map(r => {
-        const obj = {};
-        cols.forEach((c, i) => { obj[c] = r.c[i] ? (r.c[i].f || r.c[i].v || '') : ''; });
-        return obj;
-      }).filter(c => c['聯絡電話'] && String(c['聯絡電話']).length >= 8);
-      allClientsFull = allClients.slice();   // 完整資料（供電話查重跨業務比對）
-      if (currentUser.role !== 'admin') {
-        const me = currentUser.staff;
-        allClients = allClients.filter(c =>
-          String(c['接觸業務']||'').includes(me) ||
-          c['負責業務'] === me || c['指派業務'] === me
-        );
-      }
-      依規則排序(allClients);
-      updateStats();
-      renderClients(allClients);
-      updateFollowupCount();
-    })
-    .catch(err => {
-      document.getElementById('clientList').innerHTML = '<div class="no-data">無法載入資料<br>請確認試算表已設為「知道連結的任何人可檢視」</div>';
-    });
+function loadClients(onDone) {
+document.getElementById('clientList').innerHTML = '<div class="loading">正在載入客戶資料...</div>';
+fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=客戶總覽&t=${Date.now()}`)
+.then(r => r.text())
+.then(text => {
+const json = JSON.parse(text.substring(47).slice(0, -2));
+const cols = json.table.cols.map(c => c.label);
+const rows = json.table.rows;
+allClients = rows.map(r => {
+const obj = {};
+cols.forEach((c, i) => { obj[c] = r.c[i] ? (r.c[i].f || r.c[i].v || '') : ''; });
+return obj;
+}).filter(c => c['聯絡電話'] && String(c['聯絡電話']).length >= 8);
+allClientsFull = allClients.slice(); // 完整資料（供電話查重跨業務比對）
+if (currentUser.role !== 'admin') {
+const me = currentUser.staff;
+allClients = allClients.filter(c =>
+String(c['接觸業務']||'').includes(me) ||
+c['負責業務'] === me || c['指派業務'] === me
+);
+}
+依規則排序(allClients);
+updateStats();
+renderClients(allClients);
+updateFollowupCount();
+if (typeof onDone === 'function') onDone();
+})
+.catch(err => {
+document.getElementById('clientList').innerHTML = '<div class="no-data">無法載入資料<br>請確認試算表已設為「知道連結的任何人可檢視」</div>';
+});
+}
+
+// 重新整理：重抓客戶資料，並重畫「目前所在分頁」＋清報表快取（解決切到待派工／報表／追蹤提醒後不更新）
+function 重新整理() {
+if (!currentUser) return;
+reportEvents = null; // 清報表快取，強制重抓
+const active = document.querySelector('.tab.active');
+const tabName = (active && active.id) ? active.id.replace('tabbtn-', '') : 'clients';
+loadClients(function () {
+if (tabName === 'followup') renderFollowup();
+else if (tabName === 'dispatch') renderDispatch();
+else if (tabName === 'report') renderReport();
+// clients 由 loadClients 內部已重畫
+});
 }
 
 // 切回 App / 分頁時自動重抓（已登入才執行）
 document.addEventListener('visibilitychange', function () {
-  if (document.visibilityState === 'visible' && currentUser) loadClients();
+if (document.visibilityState === 'visible' && currentUser) 重新整理();
 });
 
 function updateStats() {
-  document.getElementById('statTotal').textContent = allClients.length;
-  document.getElementById('statVisited').textContent = allClients.filter(c => Number(c['來訪次數']) > 0).length;
-  document.getElementById('statContacted').textContent = allClients.filter(c => String(c['是否已聯繫']).includes('✅')).length;
-  document.getElementById('statDone').textContent = allClients.filter(c => String(c['是否成交']).includes('已下訂') || String(c['是否成交']).includes('已簽約')).length;
+document.getElementById('statTotal').textContent = allClients.length;
+document.getElementById('statVisited').textContent = allClients.filter(c => Number(c['來訪次數']) > 0).length;
+document.getElementById('statContacted').textContent = allClients.filter(c => String(c['是否已聯繫']).includes('✅')).length;
+document.getElementById('statDone').textContent = allClients.filter(c => String(c['是否成交']).includes('已下訂') || String(c['是否成交']).includes('已簽約')).length;
 }
 
 function doSearch() {
-  const kw = document.getElementById('searchInput').value.trim().toLowerCase();
-  const grade = document.getElementById('filterGrade').value;
-  const status = document.getElementById('filterStatus').value;
-  const staff = document.getElementById('filterStaff').value;
-  const filtered = allClients.filter(c => {
-    const matchKw = !kw || String(c['聯絡電話']).includes(kw) || String(c['客戶姓名']).toLowerCase().includes(kw);
-    const matchGrade = !grade || String(c['客戶等級']).includes(grade);
-    const matchStatus = !status || String(c['是否成交']).includes(status);
-    const matchStaff = !staff || String(c['負責業務']).includes(staff) || String(c['指派業務']).includes(staff);
-    return matchKw && matchGrade && matchStatus && matchStaff;
-  });
-  renderClients(filtered);
+const kw = document.getElementById('searchInput').value.trim().toLowerCase();
+const grade = document.getElementById('filterGrade').value;
+const status = document.getElementById('filterStatus').value;
+const staff = document.getElementById('filterStaff').value;
+const filtered = allClients.filter(c => {
+const matchKw = !kw || String(c['聯絡電話']).includes(kw) || String(c['客戶姓名']).toLowerCase().includes(kw);
+const matchGrade = !grade || String(c['客戶等級']).includes(grade);
+const matchStatus = !status || String(c['是否成交']).includes(status);
+const matchStaff = !staff || String(c['負責業務']).includes(staff) || String(c['指派業務']).includes(staff);
+return matchKw && matchGrade && matchStatus && matchStaff;
+});
+renderClients(filtered);
 }
 
 function renderClients(clients) {
-  const list = document.getElementById('clientList');
-  const count = document.getElementById('resultCount');
-  count.textContent = `共 ${clients.length} 筆 ·排序v4`;
-  if (!clients.length) { list.innerHTML = '<div class="no-data">沒有符合條件的客戶</div>'; return; }
-  const show = clients.slice(0, 80);
-  list.innerHTML = show.map(客戶卡片).join('') + (clients.length > 80 ? `<div class="no-data">顯示前80筆，請用搜尋縮小範圍</div>` : '');
+const list = document.getElementById('clientList');
+const count = document.getElementById('resultCount');
+count.textContent = `共 ${clients.length} 筆 ·排序v4`;
+if (!clients.length) { list.innerHTML = '<div class="no-data">沒有符合條件的客戶</div>'; return; }
+const show = clients.slice(0, 80);
+list.innerHTML = show.map(客戶卡片).join('') + (clients.length > 80 ? `<div class="no-data">顯示前80筆，請用搜尋縮小範圍</div>` : '');
 }
 
 function 階段Class(s){
-  if(s==='已成交') return 'stage-deal';
-  if(s==='無效結案') return 'stage-dead';
-  if(s==='已到場待跟進') return 'stage-visited';
-  if(s==='已聯繫未到場') return 'stage-contacted';
-  if(s==='名單未聯繫') return 'stage-new';
-  return 'stage-none';
+if(s==='已成交') return 'stage-deal';
+if(s==='無效結案') return 'stage-dead';
+if(s==='已到場待跟進') return 'stage-visited';
+if(s==='已聯繫未到場') return 'stage-contacted';
+if(s==='名單未聯繫') return 'stage-new';
+return 'stage-none';
 }
 
 function 客戶卡片(c){
-  const phone = String(c['聯絡電話']);
-  const needContact = 是未聯繫(c);
-  const 階段 = c['客戶階段'] || '';
-  const 提醒 = c['追蹤提醒'] || '';
-  return `<div class="client-card${needContact ? ' card-alert' : ''}${提醒?' card-followup':''}" onclick="showDetail('${phone.replace(/'/g,"\\'")}')">
-      <div class="client-card-top">
-        <div>
-          <div class="client-name">${needContact ? '⚠ ' : ''}${c['客戶姓名'] || '未知姓名'}</div>
-          <div class="client-phone">${phone}</div>
-        </div>
-        <div class="badges">
-          ${提醒 ? `<span class="badge badge-followup">${提醒}</span>` : ''}
-          ${c['撞客警示'] ? `<span class="badge badge-collision">⚠撞客</span>` : ''}
-          ${階段 ? `<span class="badge ${階段Class(階段)}">${階段}</span>` : ''}
-          ${c['客戶等級'] ? `<span class="badge ${gradeClass(c['客戶等級'])}">${String(c['客戶等級']).substring(0,2)}</span>` : ''}
-          ${c['是否成交'] && String(c['是否成交']).includes('已') ? `<span class="badge ${statusClass(c['是否成交'])}">${c['是否成交']}</span>` : ''}
-        </div>
-      </div>
-      <div class="client-info">
-        ${c['負責業務'] ? `<span class="info-item"><strong>業務</strong> ${c['負責業務']}</span>` : ''}
-        ${c['接觸業務'] && c['接觸業務']!==c['負責業務'] ? `<span class="info-item"><strong>接觸</strong> ${c['接觸業務']}</span>` : ''}
-        ${c['居住區域'] ? `<span class="info-item"><strong>區域</strong> ${c['居住區域']}</span>` : ''}
-        ${Number(c['來訪次數']) > 0 ? `<span class="info-item"><strong>來訪</strong> ${c['來訪次數']}次</span>` : ''}
-        ${c['最新來訪日期'] ? `<span class="info-item"><strong>最近</strong> ${c['最新來訪日期']}</span>` : ''}
-      </div>
-    </div>`;
+const phone = String(c['聯絡電話']);
+const needContact = 是未聯繫(c);
+const 階段 = c['客戶階段'] || '';
+const 提醒 = c['追蹤提醒'] || '';
+return `<div class="client-card${needContact ? ' card-alert' : ''}${提醒?' card-followup':''}" onclick="showDetail('${phone.replace(/'/g,"\\'")}')">
+<div class="client-card-top">
+<div>
+<div class="client-name">${needContact ? '⚠ ' : ''}${c['客戶姓名'] || '未知姓名'}</div>
+<div class="client-phone">${phone}</div>
+</div>
+<div class="badges">
+${提醒 ? `<span class="badge badge-followup">${提醒}</span>` : ''}
+${c['撞客警示'] ? `<span class="badge badge-collision">⚠撞客</span>` : ''}
+${階段 ? `<span class="badge ${階段Class(階段)}">${階段}</span>` : ''}
+${c['客戶等級'] ? `<span class="badge ${gradeClass(c['客戶等級'])}">${String(c['客戶等級']).substring(0,2)}</span>` : ''}
+${c['是否成交'] && String(c['是否成交']).includes('已') ? `<span class="badge ${statusClass(c['是否成交'])}">${c['是否成交']}</span>` : ''}
+</div>
+</div>
+<div class="client-info">
+${c['負責業務'] ? `<span class="info-item"><strong>業務</strong> ${c['負責業務']}</span>` : ''}
+${c['接觸業務'] && c['接觸業務']!==c['負責業務'] ? `<span class="info-item"><strong>接觸</strong> ${c['接觸業務']}</span>` : ''}
+${c['居住區域'] ? `<span class="info-item"><strong>區域</strong> ${c['居住區域']}</span>` : ''}
+${Number(c['來訪次數']) > 0 ? `<span class="info-item"><strong>來訪</strong> ${c['來訪次數']}次</span>` : ''}
+${c['最新來訪日期'] ? `<span class="info-item"><strong>最近</strong> ${c['最新來訪日期']}</span>` : ''}
+</div>
+</div>`;
 }
 
 // 追蹤提醒看板：列出 ≥14 天未跟進（依天數多到少）
 function 追蹤天數(c){ const m=String(c['追蹤提醒']||'').match(/(\d+)/); return m?Number(m[1]):0; }
 function updateFollowupCount(){
-  const n = allClients.filter(c => c['追蹤提醒']).length;
-  const el = document.getElementById('followupCount');
-  if (el) el.textContent = n ? ' (' + n + ')' : '';
+const n = allClients.filter(c => c['追蹤提醒']).length;
+const el = document.getElementById('followupCount');
+if (el) el.textContent = n ? ' (' + n + ')' : '';
 }
 function renderFollowup(){
-  const list = document.getElementById('followupList');
-  if (!list) return;
-  const items = allClients.filter(c => c['追蹤提醒']).sort((a,b)=>追蹤天數(b)-追蹤天數(a));
-  const cnt = document.getElementById('followupResultCount');
-  if (cnt) cnt.textContent = '共 ' + items.length + ' 筆需跟進';
-  list.innerHTML = items.length ? items.map(客戶卡片).join('') : '<div class="no-data">目前沒有超過 14 天未跟進的客戶 👍</div>';
+const list = document.getElementById('followupList');
+if (!list) return;
+const items = allClients.filter(c => c['追蹤提醒']).sort((a,b)=>追蹤天數(b)-追蹤天數(a));
+const cnt = document.getElementById('followupResultCount');
+if (cnt) cnt.textContent = '共 ' + items.length + ' 筆需跟進';
+list.innerHTML = items.length ? items.map(客戶卡片).join('') : '<div class="no-data">目前沒有超過 14 天未跟進的客戶 👍</div>';
 }
 
 // ===== 待派工：指派業務空白者，依來源分優先序 =====
 const 優先來源 = ['永富預約名單','FB Leads'];
 const 次要來源 = ['來人','過往來人','來電','Ariel名單'];
 function renderDispatch(){
-  const box = document.getElementById('dispatchList');
-  if (!box) return;
-  const pending = allClientsFull.filter(c => !String(c['指派業務']||'').trim());
-  document.getElementById('dispatchResultCount').textContent = '待派工共 ' + pending.length + ' 筆';
-  const pri = {}, sec = {}, other = {};
-  pending.forEach(c => {
-    const src = String(c['來電名單來源']||'').trim() || '(無來源)';
-    if (優先來源.includes(src)) (pri[src] = pri[src] || []).push(c);
-    else if (次要來源.includes(src)) (sec[src] = sec[src] || []).push(c);
-    else (other[src] = other[src] || []).push(c);
-  });
-  const sectionHTML = (title, cls, groups) => {
-    const total = Object.keys(groups).reduce((a,k)=>a+groups[k].length,0);
-    if (!total) return '';
-    let h = `<div class="dispatch-sec ${cls}"><div class="dispatch-sec-title">${title}（${total}）</div>`;
-    Object.keys(groups).forEach(src => {
-      if (!groups[src].length) return;
-      h += `<div class="dispatch-src">${src}　${groups[src].length} 筆</div>`;
-      h += groups[src].map(dispatchItem).join('');
-    });
-    return h + '</div>';
-  };
-  let html = sectionHTML('🔴 優先重掃', 'sec-pri', pri) + sectionHTML('⚪ 次要重掃', 'sec-sec', sec);
-  if (Object.keys(other).length) html += sectionHTML('其他來源', 'sec-sec', other);
-  box.innerHTML = html || '<div class="no-data">目前沒有待派工名單 👍</div>';
+const box = document.getElementById('dispatchList');
+if (!box) return;
+const pending = allClientsFull.filter(c => !String(c['指派業務']||'').trim());
+document.getElementById('dispatchResultCount').textContent = '待派工共 ' + pending.length + ' 筆';
+const pri = {}, sec = {}, other = {};
+pending.forEach(c => {
+const src = String(c['來電名單來源']||'').trim() || '(無來源)';
+if (優先來源.includes(src)) (pri[src] = pri[src] || []).push(c);
+else if (次要來源.includes(src)) (sec[src] = sec[src] || []).push(c);
+else (other[src] = other[src] || []).push(c);
+});
+const sectionHTML = (title, cls, groups) => {
+const total = Object.keys(groups).reduce((a,k)=>a+groups[k].length,0);
+if (!total) return '';
+let h = `<div class="dispatch-sec ${cls}"><div class="dispatch-sec-title">${title}（${total}）</div>`;
+Object.keys(groups).forEach(src => {
+if (!groups[src].length) return;
+h += `<div class="dispatch-src">${src} ${groups[src].length} 筆</div>`;
+h += groups[src].map(dispatchItem).join('');
+});
+return h + '</div>';
+};
+let html = sectionHTML('🔴 優先重掃', 'sec-pri', pri) + sectionHTML('⚪ 次要重掃', 'sec-sec', sec);
+if (Object.keys(other).length) html += sectionHTML('其他來源', 'sec-sec', other);
+box.innerHTML = html || '<div class="no-data">目前沒有待派工名單 👍</div>';
 }
 
 // 待派工卡片：客戶卡片 + 分派列（分派只有 frankwei 能用）
 function dispatchItem(c){
-  const phone = 正規化電話JS(c['聯絡電話']);
-  const canAssign = currentUser && currentUser.account === 'frankwei';
-  const bar = canAssign ? `<div class="assign-bar" onclick="event.stopPropagation()">
-      <select class="assign-sel" id="asg-${phone}">
-        <option value="">分派給…</option>
-        <option>施憶如</option><option>邱瀠萱</option><option>櫃檯人員</option><option>業主</option>
-      </select>
-      <button class="assign-btn" id="asgbtn-${phone}" onclick="doAssign('${phone}')">分派</button>
-    </div>` : '';
-  return `<div class="dispatch-item">${客戶卡片(c)}${bar}</div>`;
+const phone = 正規化電話JS(c['聯絡電話']);
+const canAssign = currentUser && currentUser.account === 'frankwei';
+const bar = canAssign ? `<div class="assign-bar" onclick="event.stopPropagation()">
+<select class="assign-sel" id="asg-${phone}">
+<option value="">分派給…</option>
+<option>施憶如</option><option>邱瀠萱</option><option>櫃檯人員</option><option>業主</option>
+</select>
+<button class="assign-btn" id="asgbtn-${phone}" onclick="doAssign('${phone}')">分派</button>
+</div>` : '';
+return `<div class="dispatch-item">${客戶卡片(c)}${bar}</div>`;
 }
 
 let assigning = false;
 function doAssign(phone){
-  const sel = document.getElementById('asg-'+phone);
-  const btn = document.getElementById('asgbtn-'+phone);
-  const who = sel ? sel.value : '';
-  if (!who) { alert('請先選擇要分派給誰'); return; }
-  if (assigning) return;
-  assigning = true;
-  if (btn) { btn.textContent = '分派中…'; btn.disabled = true; }
-  fetch(DISPATCH_URL, {
-    method: 'POST',
-    body: JSON.stringify({ token: DISPATCH_TOKEN, action: 'assign', phone: phone, assignee: who })
-  })
-  .then(r => r.json())
-  .then(res => {
-    assigning = false;
-    if (res && res.ok) { reloadAfterAssign(); }
-    else { alert('分派失敗：' + (res && res.error ? res.error : '未知')); if (btn){ btn.textContent='分派'; btn.disabled=false; } }
-  })
-  .catch(e => { assigning = false; alert('分派失敗（網路）：' + e); if (btn){ btn.textContent='分派'; btn.disabled=false; } });
+const sel = document.getElementById('asg-'+phone);
+const btn = document.getElementById('asgbtn-'+phone);
+const who = sel ? sel.value : '';
+if (!who) { alert('請先選擇要分派給誰'); return; }
+if (assigning) return;
+assigning = true;
+if (btn) { btn.textContent = '分派中…'; btn.disabled = true; }
+fetch(DISPATCH_URL, {
+method: 'POST',
+body: JSON.stringify({ token: DISPATCH_TOKEN, action: 'assign', phone: phone, assignee: who })
+})
+.then(r => r.json())
+.then(res => {
+assigning = false;
+if (res && res.ok) { reloadAfterAssign(); }
+else { alert('分派失敗：' + (res && res.error ? res.error : '未知')); if (btn){ btn.textContent='分派'; btn.disabled=false; } }
+})
+.catch(e => { assigning = false; alert('分派失敗（網路）：' + e); if (btn){ btn.textContent='分派'; btn.disabled=false; } });
 }
 function reloadAfterAssign(){
-  fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=客戶總覽&t=${Date.now()}`)
-    .then(r => r.text())
-    .then(text => {
-      const json = JSON.parse(text.substring(47).slice(0, -2));
-      const cols = json.table.cols.map(c => c.label);
-      allClients = json.table.rows.map(r => { const o = {}; cols.forEach((c,i)=>{o[c]=r.c[i]?(r.c[i].f||r.c[i].v||''):'';}); return o; }).filter(c => c['聯絡電話'] && String(c['聯絡電話']).length >= 8);
-      allClientsFull = allClients.slice();
-      依規則排序(allClients);
-      updateStats(); updateFollowupCount();
-      renderDispatch();
-    })
-    .catch(() => { renderDispatch(); });
+fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=客戶總覽&t=${Date.now()}`)
+.then(r => r.text())
+.then(text => {
+const json = JSON.parse(text.substring(47).slice(0, -2));
+const cols = json.table.cols.map(c => c.label);
+allClients = json.table.rows.map(r => { const o = {}; cols.forEach((c,i)=>{o[c]=r.c[i]?(r.c[i].f||r.c[i].v||''):'';}); return o; }).filter(c => c['聯絡電話'] && String(c['聯絡電話']).length >= 8);
+allClientsFull = allClients.slice();
+依規則排序(allClients);
+updateStats(); updateFollowupCount();
+renderDispatch();
+})
+.catch(() => { renderDispatch(); });
 }
 
 // ===== 報表：讀「報表事件」表，依日期區間統計 =====
 let reportEvents = null;
 let reportRange = 'today';
 function setReportRange(r, el){
-  reportRange = r;
-  document.querySelectorAll('.rng-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  renderReportNow();
+reportRange = r;
+document.querySelectorAll('.rng-btn').forEach(b => b.classList.remove('active'));
+el.classList.add('active');
+renderReportNow();
 }
 function renderReport(){
-  if (reportEvents) { renderReportNow(); return; }
-  document.getElementById('reportBody').innerHTML = '<div class="loading">載入中...</div>';
-  fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=報表事件&t=${Date.now()}`)
-    .then(r => r.text())
-    .then(text => {
-      const json = JSON.parse(text.substring(47).slice(0, -2));
-      const cols = json.table.cols.map(c => c.label);
-      reportEvents = json.table.rows.map(r => { const o = {}; cols.forEach((c,i)=>{o[c]=r.c[i]?(r.c[i].f||r.c[i].v||''):'';}); return o; });
-      renderReportNow();
-    })
-    .catch(() => { document.getElementById('reportBody').innerHTML = '<div class="no-data">無法載入報表事件<br>請先在 Apps Script 執行整合（產生「報表事件」分頁），並確認試算表可檢視。</div>'; });
+if (reportEvents) { renderReportNow(); return; }
+document.getElementById('reportBody').innerHTML = '<div class="loading">載入中...</div>';
+fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=報表事件&t=${Date.now()}`)
+.then(r => r.text())
+.then(text => {
+const json = JSON.parse(text.substring(47).slice(0, -2));
+const cols = json.table.cols.map(c => c.label);
+reportEvents = json.table.rows.map(r => { const o = {}; cols.forEach((c,i)=>{o[c]=r.c[i]?(r.c[i].f||r.c[i].v||''):'';}); return o; });
+renderReportNow();
+})
+.catch(() => { document.getElementById('reportBody').innerHTML = '<div class="no-data">無法載入報表事件<br>請先在 Apps Script 執行整合（產生「報表事件」分頁），並確認試算表可檢視。</div>'; });
 }
 function 區間數值(r){
-  const now = new Date();
-  const toNum = d => d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
-  const todayN = toNum(now);
-  if (r === 'today') return [todayN, todayN];
-  const dow = (now.getDay() || 7);  // 週一=1 … 週日=7
-  if (r === 'week') {
-    // 本週：本週一～今天
-    const mon = new Date(now); mon.setDate(now.getDate() - dow + 1);
-    return [toNum(mon), todayN];
-  }
-  // 本月（廣告週曆）：整週(一~日)歸給「該週週四所在的月份」
-  // → 月份起點＝該月第一個週四所在那一週的週一
-  const thu = new Date(now); thu.setDate(now.getDate() - dow + 4);  // 本週週四
-  const y = thu.getFullYear(), m = thu.getMonth();
-  const first = new Date(y, m, 1);
-  const fdow = (first.getDay() || 7);
-  const firstThuDay = 1 + ((4 - fdow + 7) % 7);   // 該月第一個週四是幾號
-  const start = new Date(y, m, firstThuDay - 3);  // 往前 3 天＝該週週一
-  return [toNum(start), todayN];
+const now = new Date();
+const toNum = d => d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+const todayN = toNum(now);
+if (r === 'today') return [todayN, todayN];
+const dow = (now.getDay() || 7); // 週一=1 … 週日=7
+if (r === 'week') {
+// 本週：本週一～今天
+const mon = new Date(now); mon.setDate(now.getDate() - dow + 1);
+return [toNum(mon), todayN];
+}
+// 本月（廣告週曆）：整週(一~日)歸給「該週週四所在的月份」
+// → 月份起點＝該月第一個週四所在那一週的週一
+const thu = new Date(now); thu.setDate(now.getDate() - dow + 4); // 本週週四
+const y = thu.getFullYear(), m = thu.getMonth();
+const first = new Date(y, m, 1);
+const fdow = (first.getDay() || 7);
+const firstThuDay = 1 + ((4 - fdow + 7) % 7); // 該月第一個週四是幾號
+const start = new Date(y, m, firstThuDay - 3); // 往前 3 天＝該週週一
+return [toNum(start), todayN];
 }
 function renderReportNow(){
-  const body = document.getElementById('reportBody');
-  if (!reportEvents) return;
-  const [start, end] = 區間數值(reportRange);
-  const inRange = reportEvents.filter(e => { const d = 日期數值(e['日期']); return d && d >= start && d <= end; });
-  const cats = ['來電','來人','回訪'];
-  const allCopy = [];
-  let html = '';
-  cats.forEach(cat => {
-    const evs = inRange.filter(e => e['類別'] === cat);
-    const media = {};
-    evs.forEach(e => { const m = e['媒體來源'] || '(未填)'; media[m] = (media[m]||0)+1; });
-    const mediaKeys = Object.keys(media).sort((a,b)=>media[b]-media[a]);
-    const copyText = `${cat}（${evs.length} 組）\n` + (mediaKeys.length ? mediaKeys.map(m=>`${m}：${media[m]} 組`).join('\n') : '無');
-    allCopy.push(copyText);
-    const id = 'rptd-' + cat;
-    const detail = evs.map(e => reportDetailRow(cat, e)).join('') || '<div class="no-data">此區間無資料</div>';
-    html += `<div class="report-cat">
-      <div class="report-cat-head">
-        <span class="report-cat-name">${cat}</span>
-        <span class="report-cat-count">${evs.length} 組</span>
-        <button class="copy-btn" onclick='copyText(${JSON.stringify(copyText)}, this)'>複製</button>
-      </div>
-      <div class="report-media">${mediaKeys.length ? mediaKeys.map(m=>`<span class="media-chip">${m} ${media[m]}</span>`).join('') : '<span class="media-chip">無</span>'}</div>
-      <div class="report-toggle" onclick="document.getElementById('${id}').classList.toggle('hidden')">▾ 展開明細（${evs.length}）</div>
-      <div id="${id}" class="report-detail hidden">${detail}</div>
-    </div>`;
-  });
-  const rangeLabel = reportRange==='today'?'本日':reportRange==='week'?'本週':'本月';
-  const header = `雅正永富｜${rangeLabel}統計\n`;
-  html = `<div class="report-copyall"><button class="copy-btn copy-all" onclick='copyText(${JSON.stringify(header + allCopy.join('\n\n'))}, this)'>📋 複製全部（貼日報用）</button></div>` + html;
-  body.innerHTML = html;
+const body = document.getElementById('reportBody');
+if (!reportEvents) return;
+const [start, end] = 區間數值(reportRange);
+const inRange = reportEvents.filter(e => { const d = 日期數值(e['日期']); return d && d >= start && d <= end; });
+const cats = ['來電','來人','回訪'];
+const allCopy = [];
+let html = '';
+cats.forEach(cat => {
+const evs = inRange.filter(e => e['類別'] === cat);
+const media = {};
+evs.forEach(e => { const m = e['媒體來源'] || '(未填)'; media[m] = (media[m]||0)+1; });
+const mediaKeys = Object.keys(media).sort((a,b)=>media[b]-media[a]);
+const copyText = `${cat}（${evs.length} 組）\n` + (mediaKeys.length ? mediaKeys.map(m=>`${m}：${media[m]} 組`).join('\n') : '無');
+allCopy.push(copyText);
+const id = 'rptd-' + cat;
+const detail = evs.map(e => reportDetailRow(cat, e)).join('') || '<div class="no-data">此區間無資料</div>';
+html += `<div class="report-cat">
+<div class="report-cat-head">
+<span class="report-cat-name">${cat}</span>
+<span class="report-cat-count">${evs.length} 組</span>
+<button class="copy-btn" onclick='copyText(${JSON.stringify(copyText)}, this)'>複製</button>
+</div>
+<div class="report-media">${mediaKeys.length ? mediaKeys.map(m=>`<span class="media-chip">${m} ${media[m]}</span>`).join('') : '<span class="media-chip">無</span>'}</div>
+<div class="report-toggle" onclick="document.getElementById('${id}').classList.toggle('hidden')">▾ 展開明細（${evs.length}）</div>
+<div id="${id}" class="report-detail hidden">${detail}</div>
+</div>`;
+});
+const rangeLabel = reportRange==='today'?'本日':reportRange==='week'?'本週':'本月';
+const header = `雅正永富｜${rangeLabel}統計\n`;
+html = `<div class="report-copyall"><button class="copy-btn copy-all" onclick='copyText(${JSON.stringify(header + allCopy.join('\n\n'))}, this)'>📋 複製全部（貼日報用）</button></div>` + html;
+body.innerHTML = html;
 }
 function reportDetailRow(cat, e){
-  const f = [ e['客戶姓名'] || '(無名)', e['媒體來源'] || '—' ];
-  if (cat !== '來電') f.push(e['客戶職業'] || '—');
-  f.push(e['居住區域'] || '—');
-  f.push((e['負責業務'] || '—'));
-  if (cat !== '來電') f.push(e['客戶等級'] || '—');
-  f.push(e['購屋用途'] || '—');
-  if (cat !== '來電') f.push(e['預算範圍'] || '—');
-  return `<div class="report-row">${f.join('　|　')}</div>`;
+const f = [ e['客戶姓名'] || '(無名)', e['媒體來源'] || '—' ];
+if (cat !== '來電') f.push(e['客戶職業'] || '—');
+f.push(e['居住區域'] || '—');
+f.push((e['負責業務'] || '—'));
+if (cat !== '來電') f.push(e['客戶等級'] || '—');
+f.push(e['購屋用途'] || '—');
+if (cat !== '來電') f.push(e['預算範圍'] || '—');
+return `<div class="report-row">${f.join(' | ')}</div>`;
 }
 function copyText(t, btn){
-  navigator.clipboard.writeText(t).then(()=>{ if(btn){const o=btn.textContent;btn.textContent='已複製✓';setTimeout(()=>btn.textContent=o,1500);} }).catch(()=>{});
+navigator.clipboard.writeText(t).then(()=>{ if(btn){const o=btn.textContent;btn.textContent='已複製✓';setTimeout(()=>btn.textContent=o,1500);} }).catch(()=>{});
 }
 
 let detailReturnTab = 'clients';
 function showDetail(phone) {
-  const c = allClientsFull.find(x => String(x['聯絡電話']) === phone)
-         || allClients.find(x => String(x['聯絡電話']) === phone);
-  if (!c) return;
-  // 記住來源分頁；詳情畫面在「客戶總覽」容器內，需先切到該容器才看得到
-  const active = document.querySelector('.tab.active');
-  detailReturnTab = (active && active.id) ? active.id.replace('tabbtn-','') : 'clients';
-  ['clients','followup','forms','settings','dispatch','report'].forEach(t => document.getElementById('tab-'+t).classList.add('hidden'));
-  document.getElementById('tab-clients').classList.remove('hidden');
-  document.getElementById('clientListView').classList.add('hidden');
-  document.getElementById('clientDetailView').classList.remove('hidden');
-  window.scrollTo(0, 0);
-  const histories = c['完整歷程'] ? String(c['完整歷程']).split('─────').filter(h => h.trim()) : [];
-  document.getElementById('detailContent').innerHTML = `
-    ${c['追蹤提醒'] ? `<div class="followup-banner"><i class="fu-dot"></i>${c['追蹤提醒']}　·　階段：${c['客戶階段']||'—'}</div>` : ''}
-    ${c['撞客警示'] ? `
-    <div class="collision-banner">
-      <span class="ci">⚠️</span>
-      <span class="ct">${c['撞客警示']}
-        <span class="cs">同一支電話被多位業務／多次接觸——可能不同業務各自建檔，或客戶謊稱新客。請對照「接觸業務」與「完整歷程」由您認定歸屬，系統不自動判斷。</span>
-      </span>
-    </div>` : ''}
-    <div class="detail-header">
-      <div class="detail-name">${c['客戶姓名'] || '未知姓名'}</div>
-      <div class="detail-meta">
-        <span class="detail-phone">${c['聯絡電話']}</span>
-        ${c['客戶階段'] ? `<span class="badge ${階段Class(c['客戶階段'])}">${c['客戶階段']}</span>` : ''}
-        ${c['客戶等級'] ? `<span class="badge ${gradeClass(c['客戶等級'])}">${c['客戶等級']}</span>` : ''}
-        ${c['是否成交'] ? `<span class="badge ${statusClass(c['是否成交'])}">${c['是否成交']}</span>` : ''}
-      </div>
-      <div class="detail-grid">
-        ${field('負責業務', c['負責業務'] || c['指派業務'])}
-        ${c['接觸業務'] && c['接觸業務'] !== (c['負責業務'] || c['指派業務']) ? `<div class="detail-field field-contact"><label>接觸業務</label><span>${c['接觸業務']}</span></div>` : ''}
-        ${field('居住區域', c['居住區域'])}
-        ${field('媒體來源', c['媒體來源'])}
-        ${field('購屋用途', c['購屋用途'])}
-        ${field('預算範圍', c['預算範圍'])}
-        ${field('需求房數', c['需求房數'])}
-        ${field('需求建坪', c['需求建坪'])}
-        ${field('需求車位', c['需求車位'])}
-        ${field('居住地址', c['居住地址'])}
-        ${field('來源分類', c['來電名單來源'])}
-        ${field('來訪次數', c['來訪次數'] ? c['來訪次數'] + '次' : '')}
-        ${field('首次來訪', c['首次來訪日期'])}
-      </div>
-    </div>
-    ${c['最新來訪記錄'] ? `
-    <div class="section-title">最新來訪記錄</div>
-    <div class="history-card">
-      <div class="history-date">${c['最新來訪日期'] || ''}</div>
-      <span class="history-type type-visit">來訪</span>
-      <div class="history-content">${c['最新來訪記錄']}</div>
-    </div>` : ''}
-    ${c['聯繫紀錄'] ? `
-    <div class="section-title">聯繫紀錄</div>
-    <div class="history-card">
-      <span class="history-type type-contact">${c['聯繫結果'] || '聯繫'}</span>
-      <div class="history-content">${c['聯繫紀錄']}</div>
-    </div>` : ''}
-    ${histories.length ? `
-    <div class="section-title">完整歷程（${histories.length}筆）</div>
-    ${histories.map(h => {
-      const isVisit = h.includes('首次參觀') || h.includes('回訪') || h.includes('來訪');
-      const isCall = !isVisit && (h.includes('電話') || h.includes('追蹤') || h.includes('Line') || h.includes('簡訊'));
-      return `<div class="history-card">
-        <span class="history-type ${isVisit ? 'type-visit' : isCall ? 'type-call' : 'type-contact'}">${isVisit ? '來訪' : isCall ? '電話追蹤' : '廣告聯繫'}</span>
-        <div class="history-content">${h.trim()}</div>
-      </div>`;
-    }).join('')}` : ''}
-  `;
+const c = allClientsFull.find(x => String(x['聯絡電話']) === phone)
+|| allClients.find(x => String(x['聯絡電話']) === phone);
+if (!c) return;
+// 記住來源分頁；詳情畫面在「客戶總覽」容器內，需先切到該容器才看得到
+const active = document.querySelector('.tab.active');
+detailReturnTab = (active && active.id) ? active.id.replace('tabbtn-','') : 'clients';
+['clients','followup','forms','settings','dispatch','report'].forEach(t => document.getElementById('tab-'+t).classList.add('hidden'));
+document.getElementById('tab-clients').classList.remove('hidden');
+document.getElementById('clientListView').classList.add('hidden');
+document.getElementById('clientDetailView').classList.remove('hidden');
+window.scrollTo(0, 0);
+const histories = c['完整歷程'] ? String(c['完整歷程']).split('─────').filter(h => h.trim()) : [];
+document.getElementById('detailContent').innerHTML = `
+${c['追蹤提醒'] ? `<div class="followup-banner"><i class="fu-dot"></i>${c['追蹤提醒']} · 階段：${c['客戶階段']||'—'}</div>` : ''}
+${c['撞客警示'] ? `
+<div class="collision-banner">
+<span class="ci">⚠️</span>
+<span class="ct">${c['撞客警示']}
+<span class="cs">同一支電話被多位業務／多次接觸——可能不同業務各自建檔，或客戶謊稱新客。請對照「接觸業務」與「完整歷程」由您認定歸屬，系統不自動判斷。</span>
+</span>
+</div>` : ''}
+<div class="detail-header">
+<div class="detail-name">${c['客戶姓名'] || '未知姓名'}</div>
+<div class="detail-meta">
+<span class="detail-phone">${c['聯絡電話']}</span>
+${c['客戶階段'] ? `<span class="badge ${階段Class(c['客戶階段'])}">${c['客戶階段']}</span>` : ''}
+${c['客戶等級'] ? `<span class="badge ${gradeClass(c['客戶等級'])}">${c['客戶等級']}</span>` : ''}
+${c['是否成交'] ? `<span class="badge ${statusClass(c['是否成交'])}">${c['是否成交']}</span>` : ''}
+</div>
+<div class="detail-grid">
+${field('負責業務', c['負責業務'] || c['指派業務'])}
+${c['接觸業務'] && c['接觸業務'] !== (c['負責業務'] || c['指派業務']) ? `<div class="detail-field field-contact"><label>接觸業務</label><span>${c['接觸業務']}</span></div>` : ''}
+${field('居住區域', c['居住區域'])}
+${field('媒體來源', c['媒體來源'])}
+${field('購屋用途', c['購屋用途'])}
+${field('預算範圍', c['預算範圍'])}
+${field('需求房數', c['需求房數'])}
+${field('需求建坪', c['需求建坪'])}
+${field('需求車位', c['需求車位'])}
+${field('居住地址', c['居住地址'])}
+${field('來源分類', c['來電名單來源'])}
+${field('來訪次數', c['來訪次數'] ? c['來訪次數'] + '次' : '')}
+${field('首次來訪', c['首次來訪日期'])}
+</div>
+</div>
+${c['最新來訪記錄'] ? `
+<div class="section-title">最新來訪記錄</div>
+<div class="history-card">
+<div class="history-date">${c['最新來訪日期'] || ''}</div>
+<span class="history-type type-visit">來訪</span>
+<div class="history-content">${c['最新來訪記錄']}</div>
+</div>` : ''}
+${c['聯繫紀錄'] ? `
+<div class="section-title">聯繫紀錄</div>
+<div class="history-card">
+<span class="history-type type-contact">${c['聯繫結果'] || '聯繫'}</span>
+<div class="history-content">${c['聯繫紀錄']}</div>
+</div>` : ''}
+${histories.length ? `
+<div class="section-title">完整歷程（${histories.length}筆）</div>
+${histories.map(h => {
+const isVisit = h.includes('首次參觀') || h.includes('回訪') || h.includes('來訪');
+const isCall = !isVisit && (h.includes('電話') || h.includes('追蹤') || h.includes('Line') || h.includes('簡訊'));
+return `<div class="history-card">
+<span class="history-type ${isVisit ? 'type-visit' : isCall ? 'type-call' : 'type-contact'}">${isVisit ? '來訪' : isCall ? '電話追蹤' : '廣告聯繫'}</span>
+<div class="history-content">${h.trim()}</div>
+</div>`;
+}).join('')}` : ''}
+`;
 }
 
 function field(label, val) {
-  if (!val) return '';
-  return `<div class="detail-field"><label>${label}</label><span>${val}</span></div>`;
+if (!val) return '';
+return `<div class="detail-field"><label>${label}</label><span>${val}</span></div>`;
 }
 
 // 電話正規化（與後端一致）：去非數字、886→補0
 function 正規化電話JS(v){let s=String(v||'').replace(/[^\d]/g,'');if(s.indexOf('886')===0&&s.length>=11)s='0'+s.slice(3);return s;}
 
-// D1 名單表單預填（entry 對應已從表單解析）
-const D1_FORM='https://docs.google.com/forms/d/e/1FAIpQLSe2LK78dSEPrOvbTiK4lSg8eoErpTjK0Zjhp1ZKtB1TnZgZwQ/viewform';
-const D1_ENTRY={姓名:'1757648546',電話:'1109532250',區域:'61684753',媒體:'1070098153',用途:'28419698'};
-function 建名單連結(d){
-  let u=D1_FORM+'?usp=pp_url';
-  if(d.姓名)u+='&entry.'+D1_ENTRY.姓名+'='+encodeURIComponent(d.姓名);
-  if(d.電話)u+='&entry.'+D1_ENTRY.電話+'='+encodeURIComponent(d.電話);
-  if(d.區域)u+='&entry.'+D1_ENTRY.區域+'='+encodeURIComponent(d.區域);
-  if(d.媒體)u+='&entry.'+D1_ENTRY.媒體+'='+encodeURIComponent(d.媒體);
-  if(d.用途)u+='&entry.'+D1_ENTRY.用途+'='+encodeURIComponent(d.用途);
-  return u;
-}
-
 // 命中既有客戶的呈現（依角色決定揭露程度）
 function 命中卡片(hit){
-  const 業務=hit['接觸業務']||hit['負責業務']||hit['指派業務']||'—';
-  return `<div class="dup-hit">
-    <div class="dup-hit-title">⚠ 此電話已存在系統，請勿重複建檔</div>
-    <div class="dup-row"><b>姓名</b>${hit['客戶姓名']||'—'}</div>
-    <div class="dup-row"><b>階段</b>${hit['客戶階段']||'—'}</div>
-    <div class="dup-row"><b>業務</b>${業務}</div>
-    ${hit['撞客警示']?`<div class="dup-collide">${hit['撞客警示']}</div>`:''}
-    <div class="dup-note">若確定是不同人、或需重新接觸這位客戶，請洽櫃檯／管理者依規則處理，勿自行重複建檔。</div>
-  </div>`;
+const 業務=hit['接觸業務']||hit['負責業務']||hit['指派業務']||'—';
+return `<div class="dup-hit">
+<div class="dup-hit-title">⚠ 此電話已存在系統，請勿重複建檔</div>
+<div class="dup-row"><b>姓名</b>${hit['客戶姓名']||'—'}</div>
+<div class="dup-row"><b>階段</b>${hit['客戶階段']||'—'}</div>
+<div class="dup-row"><b>業務</b>${業務}</div>
+${hit['撞客警示']?`<div class="dup-collide">${hit['撞客警示']}</div>`:''}
+<div class="dup-note">若確定是不同人、或需重新接觸這位客戶，請洽櫃檯／管理者依規則處理，勿自行重複建檔。</div>
+</div>`;
 }
 
 // 輸入電話後即時查重提示（只查不建）
 function 查重提示(){
-  const phone=正規化電話JS(document.getElementById('qcPhone').value);
-  const box=document.getElementById('dupResult');
-  if(phone.length<8){box.innerHTML='';return;}
-  const hit=allClientsFull.find(c=>正規化電話JS(c['聯絡電話'])===phone);
-  box.innerHTML=hit?命中卡片(hit):`<div class="dup-ok">✓ 此電話目前是新客戶（${phone}）</div>`;
+const phone=正規化電話JS(document.getElementById('qcPhone').value);
+const box=document.getElementById('dupResult');
+if(phone.length<8){box.innerHTML='';return;}
+const hit=allClientsFull.find(c=>正規化電話JS(c['聯絡電話'])===phone);
+box.innerHTML=hit?命中卡片(hit):`<div class="dup-ok">✓ 此電話目前是新客戶（${phone}）</div>`;
 }
 
-// 查重並建立：新客戶→帶資料開啟名單表單；既有→擋下顯示
+// 查重並建立：新客戶 → 直接寫入一筆「未指派」名單（進待派工，不再開表單）；既有 → 擋下顯示
 function 查重建名單(){
-  const phone=正規化電話JS(document.getElementById('qcPhone').value);
-  const box=document.getElementById('dupResult');
-  if(phone.length<8){box.innerHTML='<div class="dup-warn">請輸入完整電話號碼</div>';return;}
-  const hit=allClientsFull.find(c=>正規化電話JS(c['聯絡電話'])===phone);
-  if(hit){box.innerHTML=命中卡片(hit);return;}
-  const d={
-    姓名:document.getElementById('qcName').value.trim(),
-    電話:phone,
-    區域:document.getElementById('qcArea').value.trim(),
-    媒體:document.getElementById('qcMedia').value,
-    用途:document.getElementById('qcPurpose').value
-  };
-  const url=建名單連結(d);
-  box.innerHTML=`<div class="dup-ok">✓ 查無此電話（${phone}）＝新客戶<br>已帶好資料，點下方開啟名單表單，補「指派給」後送出即可。</div>
-    <button class="dup-btn" onclick="window.open('${url.replace(/'/g,"\\'")}','_blank')">開啟名單表單（已帶入資料）</button>`;
+const phone=正規化電話JS(document.getElementById('qcPhone').value);
+const box=document.getElementById('dupResult');
+if(phone.length<8){box.innerHTML='<div class="dup-warn">請輸入完整電話號碼</div>';return;}
+const hit=allClientsFull.find(c=>正規化電話JS(c['聯絡電話'])===phone);
+if(hit){box.innerHTML=命中卡片(hit);return;}
+const payload={
+token: DISPATCH_TOKEN,
+action: 'addLead',
+phone: phone,
+name: document.getElementById('qcName').value.trim(),
+area: document.getElementById('qcArea').value.trim(),
+media: document.getElementById('qcMedia').value,
+purpose: document.getElementById('qcPurpose').value
+};
+box.innerHTML='<div class="dup-ok">建立中…請稍候</div>';
+fetch(DISPATCH_URL, { method:'POST', body: JSON.stringify(payload) })
+.then(r=>r.json())
+.then(res=>{
+if(res && res.ok){
+box.innerHTML=`<div class="dup-ok">✓ 已建立名單（${phone}）<br>已進「待派工」，請至「待派工」分頁分配給業務。</div>`;
+document.getElementById('qcPhone').value='';
+document.getElementById('qcName').value='';
+document.getElementById('qcArea').value='';
+document.getElementById('qcMedia').value='';
+document.getElementById('qcPurpose').value='';
+loadClients(); // 重抓，待派工數即時更新
+} else if(res && res.exists){
+const h2=allClientsFull.find(c=>正規化電話JS(c['聯絡電話'])===phone);
+box.innerHTML = h2 ? 命中卡片(h2) : '<div class="dup-warn">此電話已存在系統，請勿重複建檔</div>';
+} else {
+box.innerHTML='<div class="dup-warn">建立失敗：'+((res && res.error) || '未知')+'</div>';
+}
+})
+.catch(e=>{ box.innerHTML='<div class="dup-warn">建立失敗（網路）：'+e+'</div>'; });
 }
 
 function backToList() {
-  document.getElementById('clientDetailView').classList.add('hidden');
-  document.getElementById('clientListView').classList.remove('hidden');
-  window.scrollTo(0, 0);
-  if (detailReturnTab && detailReturnTab !== 'clients') {
-    showTab(detailReturnTab, document.getElementById('tabbtn-' + detailReturnTab));
-  }
+document.getElementById('clientDetailView').classList.add('hidden');
+document.getElementById('clientListView').classList.remove('hidden');
+window.scrollTo(0, 0);
+if (detailReturnTab && detailReturnTab !== 'clients') {
+showTab(detailReturnTab, document.getElementById('tabbtn-' + detailReturnTab));
+}
 }
 
 function changePwd() {
-  const old = document.getElementById('oldPwd').value;
-  const n = document.getElementById('newPwd').value;
-  const c = document.getElementById('confirmPwd').value;
-  const errEl = document.getElementById('pwdError');
-  const msgEl = document.getElementById('pwdMsg');
-  errEl.classList.add('hidden');
-  msgEl.classList.add('hidden');
-  if ((passwords[currentUser.account] || currentUser.password) !== old) {
-    errEl.textContent = '目前密碼不正確';
-    errEl.classList.remove('hidden'); return;
-  }
-  if (n.length < 3) {
-    errEl.textContent = '新密碼至少需要3個字元';
-    errEl.classList.remove('hidden'); return;
-  }
-  if (n !== c) {
-    errEl.textContent = '兩次輸入的密碼不一致';
-    errEl.classList.remove('hidden'); return;
-  }
-  passwords[currentUser.account] = n;
-  document.getElementById('oldPwd').value = '';
-  document.getElementById('newPwd').value = '';
-  document.getElementById('confirmPwd').value = '';
-  msgEl.classList.remove('hidden');
+const old = document.getElementById('oldPwd').value;
+const n = document.getElementById('newPwd').value;
+const c = document.getElementById('confirmPwd').value;
+const errEl = document.getElementById('pwdError');
+const msgEl = document.getElementById('pwdMsg');
+errEl.classList.add('hidden');
+msgEl.classList.add('hidden');
+if ((passwords[currentUser.account] || currentUser.password) !== old) {
+errEl.textContent = '目前密碼不正確';
+errEl.classList.remove('hidden'); return;
+}
+if (n.length < 3) {
+errEl.textContent = '新密碼至少需要3個字元';
+errEl.classList.remove('hidden'); return;
+}
+if (n !== c) {
+errEl.textContent = '兩次輸入的密碼不一致';
+errEl.classList.remove('hidden'); return;
+}
+passwords[currentUser.account] = n;
+document.getElementById('oldPwd').value = '';
+document.getElementById('newPwd').value = '';
+document.getElementById('confirmPwd').value = '';
+msgEl.classList.remove('hidden');
 }
 </script>
 </body>

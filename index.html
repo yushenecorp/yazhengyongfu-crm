@@ -286,6 +286,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 <option value="已下訂">已下訂</option>
 <option value="已簽約">已簽約</option>
 <option value="未成交">未成交</option>
+<option value="已退訂">已退訂</option>
+<option value="已解約">已解約</option>
 </select>
 <!-- ▼▼▼ 新增業務人員請在這裡加一行 ▼▼▼ -->
 <select class="filter-select" id="filterStaff" onchange="doSearch()">
@@ -323,6 +325,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 <div class="followup-head">
 <div class="followup-title">📋 待派工名單（未指派業務）</div>
 <div class="followup-sub">業務歸屬空白（未指派）且尚未結案者列在這裡。🔴 優先：永富預約名單、FB Leads（最新、效益好）；⚪ 次要：來人／過往來人／來電／Ariel名單（舊名單，新代銷仍要重掃一輪）。由管理者一鍵分派給業務。</div>
+</div>
+<div class="search-bar">
+<input type="text" id="dispatchSearch" placeholder="搜尋待派工 電話/姓名..." onkeydown="if(event.key==='Enter')renderDispatch()" oninput="renderDispatch()" />
+<button class="btn-search" onclick="renderDispatch()">搜尋</button>
 </div>
 <div class="result-count" id="dispatchResultCount"></div>
 <div id="dispatchList"></div>
@@ -453,6 +459,7 @@ const staffFilter = document.getElementById('filterStaff');
 if (staffFilter) staffFilter.classList.toggle('hidden', user.role !== 'admin');
 // 權限隔離：待派工、報表只有管理者（櫃檯）看得到
 document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', user.role !== 'admin'));
+showTab('clients', document.getElementById('tabbtn-clients'));
 loadClients();
 } else {
 document.getElementById('loginError').classList.remove('hidden');
@@ -471,6 +478,9 @@ const lv = document.getElementById('clientListView'); if (lv) lv.classList.remov
 const si = document.getElementById('searchInput'); if (si) si.value = '';
 ['filterGrade','filterStatus','filterStaff'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
 const cl = document.getElementById('clientList'); if (cl) cl.innerHTML = '';
+// 清「填寫表單」分頁殘留（舊的查重/建立訊息與欄位）
+const dr = document.getElementById('dupResult'); if (dr) dr.innerHTML = '';
+['qcPhone','qcName','qcArea','qcMedia','qcPurpose'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
 document.getElementById('loginPage').classList.remove('hidden');
 document.getElementById('mainPage').classList.add('hidden');
 document.getElementById('loginUser').value = '';
@@ -550,7 +560,13 @@ return 最新接觸日(c) * 10000;
 
 // 是否為「未聯繫」名單（要釘在最上面催辦）
 function 是未聯繫(c) {
-return String(c['是否已聯繫']).indexOf('未聯繫') >= 0;
+// 紅框＝已派但還沒打第一通（名單未聯繫）。待派工不進客戶總覽，故總覽紅框只會是此狀態。
+return (c['客戶階段'] || '') === '名單未聯繫';
+}
+// 待派工判定：業務歸屬空白且尚未結案（與待派工分頁一致；客戶總覽不顯示這類）
+const _結案階段_ = ['已成交','無效結案','已退訂結案','已解約結案'];
+function 是待派工(c) {
+return !String(c['業務歸屬']||'').trim() && !_結案階段_.includes(c['客戶階段']||'');
 }
 
 // 兩層排序：未聯繫釘頂（越早進越上）→ 其他依時間新到舊（同天後填在上）
@@ -583,10 +599,8 @@ return obj;
 allClientsFull = allClients.slice(); // 完整資料（供電話查重跨業務比對）
 if (currentUser.role !== 'admin') {
 const me = currentUser.staff;
-allClients = allClients.filter(c =>
-String(c['接觸業務']||'').includes(me) ||
-c['業務歸屬'] === me
-);
+// P3：業務只看「業務歸屬＝自己」的客（拿掉「接觸過」條件）。改派走後原業務即看不到，避免成交爭執。
+allClients = allClients.filter(c => c['業務歸屬'] === me);
 }
 依規則排序(allClients);
 updateStats();
@@ -623,10 +637,16 @@ _visTimer = setTimeout(function () { 重新整理(true); }, 500);
 });
 
 function updateStats() {
-document.getElementById('statTotal').textContent = allClients.length;
+// 總客戶數＝在跟（非待派工：已派工或已結案），與客戶總覽列表一致
+const 在跟 = allClients.filter(c => !是待派工(c));
+document.getElementById('statTotal').textContent = 在跟.length;
 document.getElementById('statVisited').textContent = allClients.filter(c => Number(c['來訪次數']) > 0).length;
 document.getElementById('statContacted').textContent = allClients.filter(c => String(c['客戶階段']) === '已聯繫未到場').length;
 document.getElementById('statDone').textContent = allClients.filter(c => String(c['是否成交']).includes('已下訂') || String(c['是否成交']).includes('已簽約')).length;
+// 待派工分頁徽章（用完整資料，與待派工分頁一致）
+const pend = allClientsFull.filter(是待派工).length;
+const db = document.getElementById('dispatchCount');
+if (db) db.textContent = pend ? ' (' + pend + ')' : '';
 }
 
 function doSearch() {
@@ -638,8 +658,9 @@ const filtered = allClients.filter(c => {
 const matchKw = !kw || String(c['聯絡電話']).includes(kw) || String(c['客戶姓名']).toLowerCase().includes(kw);
 const matchGrade = !grade || String(c['客戶等級']).includes(grade);
 const matchStatus = !status || String(c['是否成交']).includes(status);
-const matchStaff = !staff || String(c['業務歸屬']||'').includes(staff) || String(c['接觸業務']||'').includes(staff);
-return matchKw && matchGrade && matchStatus && matchStaff;
+const matchStaff = !staff || String(c['業務歸屬']||'').includes(staff);
+// B 設計：客戶總覽只顯示「非待派工」（已派工或已結案）；待派工的客只在「待派工」分頁。
+return !是待派工(c) && matchKw && matchGrade && matchStatus && matchStaff;
 });
 renderClients(filtered);
 }
@@ -716,7 +737,12 @@ function renderDispatch(){
 const box = document.getElementById('dispatchList');
 if (!box) return;
 const 結案階段 = ['已成交','無效結案','已退訂結案','已解約結案'];
-const pending = allClientsFull.filter(c => !String(c['業務歸屬']||'').trim() && !結案階段.includes(c['客戶階段']||''));
+let pending = allClientsFull.filter(c => !String(c['業務歸屬']||'').trim() && !結案階段.includes(c['客戶階段']||''));
+// 獨立搜尋（只作用在待派工池）
+const dkw = (document.getElementById('dispatchSearch') ? document.getElementById('dispatchSearch').value : '').trim().toLowerCase();
+if (dkw) pending = pending.filter(c => String(c['聯絡電話']).includes(dkw) || String(c['客戶姓名']||'').toLowerCase().includes(dkw));
+// P2：同組內新到舊（最新建的排最前）
+pending.sort((a,b) => 排序值(b) - 排序值(a));
 document.getElementById('dispatchResultCount').textContent = '待派工共 ' + pending.length + ' 筆';
 const app = {}, pri = {}, sec = {}, other = {};
 pending.forEach(c => {

@@ -115,8 +115,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 .stage-contacted{background:#dbe9fb;color:#185fa5}
 .stage-visited{background:#d8efe4;color:#0f6e56}
 .stage-deal{background:#1d9e75;color:#fff}
+.stage-deposit{background:#9ad9bf;color:#0a5c44}
 .stage-dead{background:#e3e1da;color:#5f5e5a}
 .stage-none{background:#eef0f2;color:#73726c}
+.orig{font-size:11px;color:#9a9a93;font-weight:400}
 
 /* ===== 追蹤提醒 ===== */
 .badge-followup{background:#ba7517;color:#fff}
@@ -320,7 +322,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 <div id="tab-dispatch" class="hidden">
 <div class="followup-head">
 <div class="followup-title">📋 待派工名單（未指派業務）</div>
-<div class="followup-sub">指派業務空白者列在這裡。🔴 優先：永富預約名單、FB Leads（最新、效益好）；⚪ 次要：來人／過往來人／來電／Ariel名單（舊名單，新代銷仍要重掃一輪）。目前用 D1 表單「指派給」分配，App 一鍵派工於第二階段。</div>
+<div class="followup-sub">業務歸屬空白（未指派）且尚未結案者列在這裡。🔴 優先：永富預約名單、FB Leads（最新、效益好）；⚪ 次要：來人／過往來人／來電／Ariel名單（舊名單，新代銷仍要重掃一輪）。由管理者一鍵分派給業務。</div>
 </div>
 <div class="result-count" id="dispatchResultCount"></div>
 <div id="dispatchList"></div>
@@ -348,11 +350,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 <div class="qc-grid">
 <input type="text" id="qcPhone" placeholder="聯絡電話 *" onblur="查重提示()" />
 <input type="text" id="qcName" placeholder="客戶姓名" />
-<input type="text" id="qcArea" placeholder="居住區域" />
+<select id="qcArea">
+<option value="">居住區域</option>
+<option>東區</option><option>南區</option><option>西區</option><option>北區</option><option>中區</option>
+<option>南屯區</option><option>西屯區</option><option>北屯區</option><option>豐原區</option><option>大雅區</option>
+<option>神岡區</option><option>大里區</option><option>后里區</option><option>霧峰區</option><option>太平區</option>
+<option>龍井區</option><option>沙鹿區</option><option>梧棲區</option><option>清水區</option>
+<option>台北市</option><option>新北市</option><option>桃園市</option><option>台南市</option><option>高雄市</option>
+<option>彰化縣</option><option>南投縣</option><option>苗栗縣</option><option>其他</option>
+</select>
 <select id="qcMedia">
 <option value="">媒體來源</option>
 <option>網路</option><option>介紹</option><option>會館</option><option>基地</option>
-<option>新聞稿</option><option>簡訊</option><option>591</option><option>樂居</option>
+<option>新聞稿</option><option>簡訊</option><option>591</option><option>樂居</option><option>POP</option>
 </select>
 <select id="qcPurpose">
 <option value="">購屋用途</option>
@@ -404,7 +414,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 // ▼▼▼ 人員設定區域（新增/刪除人員請在這裡修改）▼▼▼
 // =====================================================
 // role: 'admin' = 管理者（看全部）, 'staff' = 銷售人員（只看自己）
-// staff: 銷售人員的名字（必須跟試算表裡「負責業務」欄位一致）
+// staff: 銷售人員的名字（必須跟試算表裡「業務歸屬」欄位一致）
 const USERS = [
 {account:'frankwei', password:'168', name:'副總', role:'admin', staff:null},
 {account:'royyang', password:'168', name:'副專1', role:'admin', staff:null},
@@ -565,7 +575,7 @@ if (currentUser.role !== 'admin') {
 const me = currentUser.staff;
 allClients = allClients.filter(c =>
 String(c['接觸業務']||'').includes(me) ||
-c['負責業務'] === me || c['指派業務'] === me
+c['業務歸屬'] === me
 );
 }
 依規則排序(allClients);
@@ -614,7 +624,7 @@ const filtered = allClients.filter(c => {
 const matchKw = !kw || String(c['聯絡電話']).includes(kw) || String(c['客戶姓名']).toLowerCase().includes(kw);
 const matchGrade = !grade || String(c['客戶等級']).includes(grade);
 const matchStatus = !status || String(c['是否成交']).includes(status);
-const matchStaff = !staff || String(c['負責業務']).includes(staff) || String(c['指派業務']).includes(staff);
+const matchStaff = !staff || String(c['業務歸屬']).includes(staff);
 return matchKw && matchGrade && matchStatus && matchStaff;
 });
 renderClients(filtered);
@@ -631,7 +641,8 @@ list.innerHTML = show.map(客戶卡片).join('') + (clients.length > 80 ? `<div 
 
 function 階段Class(s){
 if(s==='已成交') return 'stage-deal';
-if(s==='無效結案') return 'stage-dead';
+if(s==='已下訂（待簽約）') return 'stage-deposit';
+if(s==='無效結案'||s==='已退訂結案'||s==='已解約結案') return 'stage-dead';
 if(s==='已到場待跟進') return 'stage-visited';
 if(s==='已聯繫未到場') return 'stage-contacted';
 if(s==='名單未聯繫') return 'stage-new';
@@ -658,8 +669,8 @@ ${c['是否成交'] && String(c['是否成交']).includes('已') ? `<span class=
 </div>
 </div>
 <div class="client-info">
-${c['負責業務'] ? `<span class="info-item"><strong>業務</strong> ${c['負責業務']}</span>` : ''}
-${c['接觸業務'] && c['接觸業務']!==c['負責業務'] ? `<span class="info-item"><strong>接觸</strong> ${c['接觸業務']}</span>` : ''}
+${c['業務歸屬'] ? `<span class="info-item"><strong>業務</strong> ${c['業務歸屬']}${c['原始業務'] && c['原始業務']!==c['業務歸屬'] ? ` <span class="orig">原始：${c['原始業務']}</span>` : ''}</span>` : ''}
+${c['接觸業務'] && c['接觸業務']!==c['業務歸屬'] ? `<span class="info-item"><strong>接觸</strong> ${c['接觸業務']}</span>` : ''}
 ${c['居住區域'] ? `<span class="info-item"><strong>區域</strong> ${c['居住區域']}</span>` : ''}
 ${Number(c['來訪次數']) > 0 ? `<span class="info-item"><strong>來訪</strong> ${c['來訪次數']}次</span>` : ''}
 ${c['最新來訪日期'] ? `<span class="info-item"><strong>最近</strong> ${c['最新來訪日期']}</span>` : ''}
@@ -683,13 +694,14 @@ if (cnt) cnt.textContent = '共 ' + items.length + ' 筆需跟進';
 list.innerHTML = items.length ? items.map(客戶卡片).join('') : '<div class="no-data">目前沒有超過 14 天未跟進的客戶 👍</div>';
 }
 
-// ===== 待派工：指派業務空白者，依來源分優先序 =====
+// ===== 待派工：業務歸屬空白且未結案者，依來源分優先序 =====
 const 優先來源 = ['永富預約名單','FB Leads'];
 const 次要來源 = ['來人','過往來人','來電','Ariel名單'];
 function renderDispatch(){
 const box = document.getElementById('dispatchList');
 if (!box) return;
-const pending = allClientsFull.filter(c => !String(c['指派業務']||'').trim());
+const 結案階段 = ['已成交','無效結案','已退訂結案','已解約結案'];
+const pending = allClientsFull.filter(c => !String(c['業務歸屬']||'').trim() && !結案階段.includes(c['客戶階段']||''));
 document.getElementById('dispatchResultCount').textContent = '待派工共 ' + pending.length + ' 筆';
 const pri = {}, sec = {}, other = {};
 pending.forEach(c => {
@@ -844,7 +856,7 @@ function reportDetailRow(cat, e){
 const f = [ e['客戶姓名'] || '(無名)', e['媒體來源'] || '—' ];
 if (cat !== '來電') f.push(e['客戶職業'] || '—');
 f.push(e['居住區域'] || '—');
-f.push((e['負責業務'] || '—'));
+f.push((e['業務歸屬'] || '—'));
 if (cat !== '來電') f.push(e['客戶等級'] || '—');
 f.push(e['購屋用途'] || '—');
 if (cat !== '來電') f.push(e['預算範圍'] || '—');
@@ -886,14 +898,16 @@ ${c['客戶等級'] ? `<span class="badge ${gradeClass(c['客戶等級'])}">${c[
 ${c['是否成交'] ? `<span class="badge ${statusClass(c['是否成交'])}">${c['是否成交']}</span>` : ''}
 </div>
 <div class="detail-grid">
-${field('負責業務', c['負責業務'] || c['指派業務'])}
-${c['接觸業務'] && c['接觸業務'] !== (c['負責業務'] || c['指派業務']) ? `<div class="detail-field field-contact"><label>接觸業務</label><span>${c['接觸業務']}</span></div>` : ''}
+${c['業務歸屬'] ? `<div class="detail-field"><label>業務歸屬</label><span>${c['業務歸屬']}${c['原始業務'] && c['原始業務']!==c['業務歸屬'] ? ` <span class="orig">原始：${c['原始業務']}</span>` : ''}</span></div>` : ''}
+${c['接觸業務'] && c['接觸業務'] !== c['業務歸屬'] ? `<div class="detail-field field-contact"><label>接觸業務</label><span>${c['接觸業務']}</span></div>` : ''}
+${field('客戶職業', c['客戶職業'])}
 ${field('居住區域', c['居住區域'])}
-${field('媒體來源', c['媒體來源'])}
+${c['媒體來源'] ? `<div class="detail-field"><label>媒體來源</label><span>${c['媒體來源']}${c['原始媒體來源'] && c['原始媒體來源']!==c['媒體來源'] ? ` <span class="orig">原始：${c['原始媒體來源']}</span>` : ''}</span></div>` : ''}
 ${field('購屋用途', c['購屋用途'])}
 ${field('預算範圍', c['預算範圍'])}
 ${field('需求房數', c['需求房數'])}
 ${field('需求建坪', c['需求建坪'])}
+${field('需求地坪', c['需求地坪'])}
 ${field('需求車位', c['需求車位'])}
 ${field('居住地址', c['居住地址'])}
 ${field('來源分類', c['來電名單來源'])}
@@ -946,7 +960,7 @@ function 正規化電話JS(v){let s=String(v||'').replace(/[^\d]/g,'');if(s.inde
 
 // 命中既有客戶的呈現（依角色決定揭露程度）
 function 命中卡片(hit){
-const 業務=hit['接觸業務']||hit['負責業務']||hit['指派業務']||'—';
+const 業務=hit['業務歸屬']||hit['接觸業務']||'—';
 return `<div class="dup-hit">
 <div class="dup-hit-title">⚠ 此電話已存在系統，請勿重複建檔</div>
 <div class="dup-row"><b>姓名</b>${hit['客戶姓名']||'—'}</div>

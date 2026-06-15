@@ -489,6 +489,8 @@ showTab('clients', document.getElementById('tabbtn-clients'));
 }
 
 function showTab(name, el) {
+const _dv=document.getElementById('clientDetailView'); if(_dv) _dv.classList.add('hidden');
+const _lv=document.getElementById('clientListView'); if(_lv) _lv.classList.remove('hidden');
 ['clients','followup','forms','settings','dispatch','report'].forEach(t => document.getElementById('tab-'+t).classList.add('hidden'));
 document.getElementById('tab-'+name).classList.remove('hidden');
 document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -800,7 +802,7 @@ body: JSON.stringify({ token: DISPATCH_TOKEN, action: 'assign', phone: phone, as
 .then(r => r.json())
 .then(res => {
 assigning = false;
-if (res && res.ok) { reloadAfterAssign(); }
+if (res && res.ok) { 重新整理(); reloadAfterAssign(); }
 else { alert('分派失敗：' + (res && res.error ? res.error : '未知')); if (btn){ btn.textContent='分派'; btn.disabled=false; } }
 })
 .catch(e => { assigning = false; alert('分派失敗（網路）：' + e); if (btn){ btn.textContent='分派'; btn.disabled=false; } });

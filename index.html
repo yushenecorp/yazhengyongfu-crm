@@ -422,13 +422,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 // role: 'admin' = 管理者（看全部）, 'staff' = 銷售人員（只看自己）
 // staff: 銷售人員的名字（必須跟試算表裡「業務歸屬」欄位一致）
 // canDispatch: true = 可分派/改派客戶（副總、專案經理等管理職）；false = 唯讀（含副專、業務）
-const USERS = [
-{account:'frankwei', password:'168', name:'副總', role:'admin', staff:null, canDispatch:true},
-{account:'royyang', password:'168', name:'副專1', role:'admin', staff:null, canDispatch:false},
-{account:'marklin', password:'168', name:'副專2', role:'admin', staff:null, canDispatch:false},
-{account:'sarashih', password:'168', name:'施憶如', role:'staff', staff:'施憶如', canDispatch:false},
-{account:'krystalchiu', password:'168', name:'邱瀠萱', role:'staff', staff:'邱瀠萱', canDispatch:false},
-];
+// 帳號密碼與角色已移至後端（安全重構）。前端不再保存任何密碼。
+// 登入後由後端回傳 currentUser（含 name/role/staff/canDispatch）。
 // =====================================================
 // ▲▲▲ 人員設定區域結束 ▲▲▲
 // =====================================================
@@ -439,35 +434,42 @@ const DISPATCH_URL = 'https://script.google.com/macros/s/AKfycbwIZLU_BVtlzBBiKIi
 const DISPATCH_TOKEN = 'yushene-dispatch-2026';
 
 let currentUser = null;
+let sessionToken = null;   // 登入後拿到的票，讀資料/報表時帶上
 let allClients = [];
 let allClientsFull = [];
-const passwords = {};
-USERS.forEach(u => passwords[u.account] = u.password);
 
 function doLogin() {
 const acc = document.getElementById('loginUser').value.trim();
 const pwd = document.getElementById('loginPass').value;
-const user = USERS.find(u => u.account === acc && (passwords[u.account] || u.password) === pwd);
-if (user) {
-currentUser = user;
+const errEl = document.getElementById('loginError');
+errEl.textContent = '登入中…';
+errEl.classList.remove('hidden');
+fetch(DISPATCH_URL, { method:'POST', body: JSON.stringify({ action:'login', account:acc, password:pwd }) })
+.then(r => r.json())
+.then(res => {
+if (res && res.ok) {
+sessionToken = res.token;
+currentUser = { account:acc, name:res.user.name, role:res.user.role, staff:res.user.staff, canDispatch:!!res.user.canDispatch };
+errEl.classList.add('hidden');
 document.getElementById('loginPage').classList.add('hidden');
 document.getElementById('mainPage').classList.remove('hidden');
-document.getElementById('userBadge').textContent = user.name + '（' + (user.role === 'admin' ? '管理者' : '銷售人員') + '）';
-document.getElementById('loginError').classList.add('hidden');
-// 權限隔離：非管理者隱藏「業務篩選器」（他本來就只看得到自己的客戶）
+document.getElementById('userBadge').textContent = currentUser.name + '（' + (currentUser.role === 'admin' ? '管理者' : '銷售人員') + '）';
 const staffFilter = document.getElementById('filterStaff');
-if (staffFilter) staffFilter.classList.toggle('hidden', user.role !== 'admin');
-// 權限隔離：待派工、報表只有管理者（櫃檯）看得到
-document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', user.role !== 'admin'));
+if (staffFilter) staffFilter.classList.toggle('hidden', currentUser.role !== 'admin');
+document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', currentUser.role !== 'admin'));
 showTab('clients', document.getElementById('tabbtn-clients'));
 loadClients();
 } else {
-document.getElementById('loginError').classList.remove('hidden');
+errEl.textContent = (res && res.error) ? res.error : '帳號或密碼錯誤，請再試一次';
+errEl.classList.remove('hidden');
 }
+})
+.catch(e => { errEl.textContent = '登入失敗（網路）：' + e; errEl.classList.remove('hidden'); });
 }
 
 function doLogout() {
 currentUser = null;
+sessionToken = null;
 allClients = [];
 allClientsFull = [];
 reportEvents = null;
@@ -589,32 +591,24 @@ function 正規化日期(v) { return 日期數值(v); }
 
 function loadClients(onDone, silent) {
 if (!silent) document.getElementById('clientList').innerHTML = '<div class="loading">正在載入客戶資料...</div>';
-fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=客戶總覽&t=${Date.now()}`)
-.then(r => r.text())
-.then(text => {
-const json = JSON.parse(text.substring(47).slice(0, -2));
-const cols = json.table.cols.map(c => c.label);
-const rows = json.table.rows;
-allClients = rows.map(r => {
-const obj = {};
-cols.forEach((c, i) => { obj[c] = r.c[i] ? (r.c[i].f || r.c[i].v || '') : ''; });
-return obj;
-}).filter(c => c['聯絡電話'] && String(c['聯絡電話']).length >= 8);
-allClientsFull = allClients.slice(); // 完整資料（供電話查重跨業務比對）
-if (currentUser.role !== 'admin') {
-const me = currentUser.staff;
-// P3：業務只看「業務歸屬＝自己」的客（拿掉「接觸過」條件）。改派走後原業務即看不到，避免成交爭執。
-allClients = allClients.filter(c => 歸屬(c) === me);
+fetch(DISPATCH_URL, { method:'POST', body: JSON.stringify({ action:'getData', token:sessionToken }) })
+.then(r => r.json())
+.then(res => {
+if (!res || !res.ok) {
+if (res && /逾時|未授權/.test(res.error || '')) { alert('登入逾時，請重新登入'); doLogout(); return; }
+throw new Error(res && res.error ? res.error : 'no data');
 }
+const H = res.headers;
+allClients = res.rows.map(o => { const c = {}; H.forEach(h => { c[h] = (o[h]==null?'':o[h]); }); return c; })
+.filter(c => c['聯絡電話'] && String(c['聯絡電話']).length >= 8);
+allClientsFull = allClients.slice();
 依規則排序(allClients);
 updateStats();
-doSearch(); // 套用目前的搜尋字＋篩選器（取代直接畫全部，修正切換/重整後顯示與篩選不一致）
+doSearch();
 updateFollowupCount();
 if (typeof onDone === 'function') onDone();
 })
-.catch(err => {
-document.getElementById('clientList').innerHTML = '<div class="no-data">無法載入資料<br>請確認試算表已設為「知道連結的任何人可檢視」</div>';
-});
+.catch(err => { document.getElementById('clientList').innerHTML = '<div class="no-data">無法載入資料<br>' + (err.message || err) + '</div>'; });
 }
 
 // 重新整理：重抓客戶資料，並重畫「目前所在分頁」＋清報表快取（解決切到待派工／報表／追蹤提醒後不更新）
@@ -808,12 +802,13 @@ else { alert('分派失敗：' + (res && res.error ? res.error : '未知')); if 
 .catch(e => { assigning = false; alert('分派失敗（網路）：' + e); if (btn){ btn.textContent='分派'; btn.disabled=false; } });
 }
 function reloadAfterAssign(){
-fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=客戶總覽&t=${Date.now()}`)
-.then(r => r.text())
-.then(text => {
-const json = JSON.parse(text.substring(47).slice(0, -2));
-const cols = json.table.cols.map(c => c.label);
-allClients = json.table.rows.map(r => { const o = {}; cols.forEach((c,i)=>{o[c]=r.c[i]?(r.c[i].f||r.c[i].v||''):'';}); return o; }).filter(c => c['聯絡電話'] && String(c['聯絡電話']).length >= 8);
+fetch(DISPATCH_URL, { method:'POST', body: JSON.stringify({ action:'getData', token:sessionToken }) })
+.then(r => r.json())
+.then(res => {
+if (!res || !res.ok) { renderDispatch(); return; }
+const H = res.headers;
+allClients = res.rows.map(o => { const c = {}; H.forEach(h => { c[h] = (o[h]==null?'':o[h]); }); return c; })
+.filter(c => c['聯絡電話'] && String(c['聯絡電話']).length >= 8);
 allClientsFull = allClients.slice();
 依規則排序(allClients);
 updateStats(); updateFollowupCount();
@@ -834,15 +829,15 @@ renderReportNow();
 function renderReport(){
 if (reportEvents) { renderReportNow(); return; }
 document.getElementById('reportBody').innerHTML = '<div class="loading">載入中...</div>';
-fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=報表事件&t=${Date.now()}`)
-.then(r => r.text())
-.then(text => {
-const json = JSON.parse(text.substring(47).slice(0, -2));
-const cols = json.table.cols.map(c => c.label);
-reportEvents = json.table.rows.map(r => { const o = {}; cols.forEach((c,i)=>{o[c]=r.c[i]?(r.c[i].f||r.c[i].v||''):'';}); return o; });
+fetch(DISPATCH_URL, { method:'POST', body: JSON.stringify({ action:'getReport', token:sessionToken }) })
+.then(r => r.json())
+.then(res => {
+if (!res || !res.ok) { document.getElementById('reportBody').innerHTML = '<div class="no-data">無法載入報表：' + ((res&&res.error)||'未知') + '</div>'; return; }
+const H = res.headers;
+reportEvents = res.rows.map(o => { const e = {}; H.forEach(h => { e[h] = (o[h]==null?'':o[h]); }); return e; });
 renderReportNow();
 })
-.catch(() => { document.getElementById('reportBody').innerHTML = '<div class="no-data">無法載入報表事件<br>請先在 Apps Script 執行整合（產生「報表事件」分頁），並確認試算表可檢視。</div>'; });
+.catch(() => { document.getElementById('reportBody').innerHTML = '<div class="no-data">無法載入報表事件</div>'; });
 }
 function 區間數值(r){
 const now = new Date();
@@ -1104,30 +1099,11 @@ showTab(detailReturnTab, document.getElementById('tabbtn-' + detailReturnTab));
 }
 
 function changePwd() {
-const old = document.getElementById('oldPwd').value;
-const n = document.getElementById('newPwd').value;
-const c = document.getElementById('confirmPwd').value;
 const errEl = document.getElementById('pwdError');
 const msgEl = document.getElementById('pwdMsg');
-errEl.classList.add('hidden');
 msgEl.classList.add('hidden');
-if ((passwords[currentUser.account] || currentUser.password) !== old) {
-errEl.textContent = '目前密碼不正確';
-errEl.classList.remove('hidden'); return;
-}
-if (n.length < 3) {
-errEl.textContent = '新密碼至少需要3個字元';
-errEl.classList.remove('hidden'); return;
-}
-if (n !== c) {
-errEl.textContent = '兩次輸入的密碼不一致';
-errEl.classList.remove('hidden'); return;
-}
-passwords[currentUser.account] = n;
-document.getElementById('oldPwd').value = '';
-document.getElementById('newPwd').value = '';
-document.getElementById('confirmPwd').value = '';
-msgEl.classList.remove('hidden');
+errEl.textContent = '密碼變更請洽管理者（副總）統一設定，此處暫不開放線上修改。';
+errEl.classList.remove('hidden');
 }
 </script>
 </body>

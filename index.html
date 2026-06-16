@@ -438,7 +438,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 const SHEET_ID = '1G6v8t2coqCBMJu5LDuYacqcZGVdXbpyzcVt48OlFC4k';
 // 派工寫入端（Apps Script Web App）
 const DISPATCH_URL = 'https://script.google.com/macros/s/AKfycbwIZLU_BVtlzBBiKIitwFPtlpfQwEi9RaeuG-jgmGqndHuAmL446ZtjdgzcfGdHuHxs/exec';
-const DISPATCH_TOKEN = 'yushene-dispatch-2026';
+// DISPATCH_TOKEN 已移除：派工/建單改用登入後的 sessionToken（token換票）
 
 let currentUser = null;
 let sessionToken = null;   // 登入後拿到的票，讀資料/報表時帶上
@@ -798,7 +798,7 @@ assigning = true;
 if (btn) { btn.textContent = '分派中…'; btn.disabled = true; }
 fetch(DISPATCH_URL, {
 method: 'POST',
-body: JSON.stringify({ token: DISPATCH_TOKEN, action: 'assign', phone: phone, assignee: who })
+body: JSON.stringify({ token: sessionToken, action: 'assign', phone: phone, assignee: who })
 })
 .then(r => r.json())
 .then(res => {
@@ -1080,7 +1080,7 @@ const hit=allClientsFull.find(c=>正規化電話JS(c['聯絡電話'])===phone);
 if(hit){box.innerHTML=命中卡片(hit);return;}
 const 自己 = (currentUser && currentUser.role==='staff' && currentUser.staff) ? currentUser.staff : '';
 const payload={
-token: DISPATCH_TOKEN,
+token: sessionToken,
 action: 'addLead',
 phone: phone,
 name: document.getElementById('qcName').value.trim(),
@@ -1121,7 +1121,7 @@ const who=sel?sel.value:'';
 if(!who){alert('請先選擇要派給誰');return;}
 const o=btn?btn.textContent:'';
 if(btn){btn.textContent='處理中…';btn.disabled=true;}
-fetch(DISPATCH_URL,{method:'POST',body:JSON.stringify({token:DISPATCH_TOKEN,action:'assign',phone:phone,assignee:who})})
+fetch(DISPATCH_URL,{method:'POST',body:JSON.stringify({token:sessionToken,action:'assign',phone:phone,assignee:who})})
 .then(r=>r.json()).then(res=>{
 if(res&&res.ok){ alert('已指派給 '+who+'，業務歸屬已更新。'); 重新整理(); backToList(); }
 else { alert('派工失敗：'+((res&&res.error)||'未知')); if(btn){btn.textContent=o;btn.disabled=false;} }

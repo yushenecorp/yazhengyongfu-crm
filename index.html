@@ -382,6 +382,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 <option>置產</option><option>首購</option><option>其他</option>
 </select>
 </div>
+<input type="text" id="qcNote" placeholder="電話中註記（選填，例如客人講了什麼）" style="width:100%;box-sizing:border-box;margin-top:8px" />
 <button class="btn-search qc-btn" onclick="查重建名單()">查重並建立名單</button>
 <div id="dupResult"></div>
 </div>
@@ -1087,6 +1088,7 @@ name: document.getElementById('qcName').value.trim(),
 area: document.getElementById('qcArea').value.trim(),
 media: document.getElementById('qcMedia').value,
 purpose: document.getElementById('qcPurpose').value,
+note: document.getElementById('qcNote').value.trim(),
 assignee: 自己
 };
 box.innerHTML='<div class="dup-ok">建立中…請稍候</div>';
@@ -1102,6 +1104,7 @@ document.getElementById('qcName').value='';
 document.getElementById('qcArea').value='';
 document.getElementById('qcMedia').value='';
 document.getElementById('qcPurpose').value='';
+document.getElementById('qcNote').value='';
 loadClients(); // 重抓，待派工數即時更新
 } else if(res && res.exists){
 const h2=allClientsFull.find(c=>正規化電話JS(c['聯絡電話'])===phone);

@@ -383,6 +383,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 </select>
 </div>
 <input type="text" id="qcNote" placeholder="電話中註記（選填，例如客人講了什麼）" style="width:100%;box-sizing:border-box;margin-top:8px" />
+<div id="qcSourceWrap" class="admin-only hidden" style="margin-top:8px;display:flex;gap:14px;align-items:center;font-size:14px">
+<span style="color:#666">名單來源：</span>
+<label style="cursor:pointer"><input type="radio" name="qcSource" value="廣告名單" checked> 廣告名單</label>
+<label style="cursor:pointer"><input type="radio" name="qcSource" value="客人來電"> 客人來電</label>
+</div>
 <button class="btn-search qc-btn" onclick="查重建名單()">查重並建立名單</button>
 <div id="dupResult"></div>
 </div>
@@ -736,7 +741,7 @@ list.innerHTML = items.length ? items.map(c=>客戶卡片(c)).join('') : '<div c
 }
 
 // ===== 待派工：業務歸屬空白且未結案者，依來源分優先序 =====
-const 最新建單 = ['App快速建單'];
+const 最新建單 = ['App快速建單','App來電','App廣告'];
 const 優先來源 = ['永富預約名單','FB Leads'];
 const 次要來源 = ['來人','過往來人','來電','Ariel名單'];
 function renderDispatch(){
@@ -1089,7 +1094,8 @@ area: document.getElementById('qcArea').value.trim(),
 media: document.getElementById('qcMedia').value,
 purpose: document.getElementById('qcPurpose').value,
 note: document.getElementById('qcNote').value.trim(),
-assignee: 自己
+assignee: 自己,
+source: (currentUser && currentUser.role==='admin') ? ((document.querySelector('input[name=qcSource]:checked')||{}).value || '廣告名單') : '客人來電'
 };
 box.innerHTML='<div class="dup-ok">建立中…請稍候</div>';
 fetch(DISPATCH_URL, { method:'POST', body: JSON.stringify(payload) })
@@ -1105,6 +1111,7 @@ document.getElementById('qcArea').value='';
 document.getElementById('qcMedia').value='';
 document.getElementById('qcPurpose').value='';
 document.getElementById('qcNote').value='';
+const _sd=document.querySelector('input[name=qcSource][value="廣告名單"]'); if(_sd)_sd.checked=true;
 loadClients(); // 重抓，待派工數即時更新
 } else if(res && res.exists){
 const h2=allClientsFull.find(c=>正規化電話JS(c['聯絡電話'])===phone);

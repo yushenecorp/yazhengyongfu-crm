@@ -343,13 +343,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 <!-- 報表 -->
 <div id="tab-report" class="hidden">
 <div class="followup-head">
-<div class="followup-title">📊 來電 / 來人 / 回訪 統計</div>
+<div class="followup-title">📊 來電 / 來人 / 回訪 / 網路預約 統計</div>
 <div class="followup-sub">依填表日期統計各類組數與媒體來源，供日報／週報參考。明細可展開、可一鍵複製文字。</div>
 </div>
 <div class="report-range">
 <button class="rng-btn active" id="rng-today" onclick="setReportRange('today',this)">本日</button>
 <button class="rng-btn" id="rng-week" onclick="setReportRange('week',this)">本週</button>
 <button class="rng-btn" id="rng-month" onclick="setReportRange('month',this)">本月</button>
+<button class="rng-btn" id="rng-all" onclick="setReportRange('all',this)">全案</button>
 </div>
 <div id="reportBody"><div class="loading">載入中...</div></div>
 </div>
@@ -673,17 +674,23 @@ const matchStaff = !staff || 歸屬(c).includes(staff);
 // B 設計：客戶總覽只顯示「非待派工」（已派工或已結案）；待派工的客只在「待派工」分頁。
 return !是待派工(c) && matchKw && matchGrade && matchStatus && matchStaff;
 });
+顯示上限 = 80;
 renderClients(filtered);
 }
 
+let 顯示上限 = 80;
+let 目前清單 = [];
 function renderClients(clients) {
+目前清單 = clients;
 const list = document.getElementById('clientList');
 const count = document.getElementById('resultCount');
 count.textContent = `共 ${clients.length} 筆 ·排序v4`;
 if (!clients.length) { list.innerHTML = '<div class="no-data">沒有符合條件的客戶</div>'; return; }
-const show = clients.slice(0, 80);
-list.innerHTML = show.map(c=>客戶卡片(c)).join('') + (clients.length > 80 ? `<div class="no-data">顯示前80筆，請用搜尋縮小範圍</div>` : '');
+const show = clients.slice(0, 顯示上限);
+const 還有 = clients.length - show.length;
+list.innerHTML = show.map(c=>客戶卡片(c)).join('') + (還有 > 0 ? `<div style="text-align:center;padding:12px"><button class="btn-search" style="width:100%" onclick="載入更多()">載入更多（還有 ${還有} 筆）</button></div>` : '');
 }
+function 載入更多(){ 顯示上限 += 80; renderClients(目前清單); }
 
 function 階段Class(s){
 if(s==='已成交') return 'stage-deal';
@@ -856,6 +863,7 @@ function 區間數值(r){
 const now = new Date();
 const toNum = d => d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
 const todayN = toNum(now);
+if (r === 'all') return [0, 99999999];
 if (r === 'today') return [todayN, todayN];
 const dow = (now.getDay() || 7); // 週一=1 … 週日=7
 if (r === 'week') {
@@ -878,7 +886,7 @@ const body = document.getElementById('reportBody');
 if (!reportEvents) return;
 const [start, end] = 區間數值(reportRange);
 const inRange = reportEvents.filter(e => { const d = 日期數值(e['日期']); return d && d >= start && d <= end; });
-const cats = ['來電','來人','回訪'];
+const cats = ['來電','來人','回訪','網路預約'];
 const allCopy = [];
 let html = '';
 cats.forEach(cat => {
@@ -901,7 +909,7 @@ html += `<div class="report-cat">
 <div id="${id}" class="report-detail hidden">${detail}</div>
 </div>`;
 });
-const rangeLabel = reportRange==='today'?'本日':reportRange==='week'?'本週':'本月';
+const rangeLabel = reportRange==='today'?'本日':reportRange==='week'?'本週':reportRange==='month'?'本月':'全案';
 const header = `雅正永富｜${rangeLabel}統計\n`;
 html = `<div class="report-copyall"><button class="copy-btn copy-all" onclick='copyText(${JSON.stringify(header + allCopy.join('\n\n'))}, this)'>📋 複製全部（貼日報用）</button></div>` + html;
 body.innerHTML = html;

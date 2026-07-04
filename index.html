@@ -719,20 +719,19 @@ if(s==='名單未聯繫') return 'stage-new';
 return 'stage-none';
 }
 
-// 卡片最新狀況：取來訪記錄/追蹤內容較新的一筆，超過60字截斷
+// 卡片最新狀況：讀「完整歷程」第一筆（後端已依時間新到舊排序，與詳情頁同一來源）
+// 歷程格式：[日期] 動作｜業務：內容。沒有歷程時退用聯繫結果/紀錄。
 function 最新狀況(c){
-const t訪 = 日期數值(c['最新來訪日期']);
-const t追 = 日期數值(c['最新追蹤日期']);
-const 訪內 = String(c['最新來訪記錄']||'').trim();
-const 追內 = String(c['最新追蹤內容']||'').trim();
-let 類型='', 日期='', 內容='';
-if (訪內 && (t訪 >= t追 || !追內)) { 類型='來訪'; 日期=c['最新來訪日期']||''; 內容=訪內; }
-else if (追內) { 類型='追蹤'; 日期=c['最新追蹤日期']||''; 內容=追內; }
-else if (String(c['聯繫紀錄']||'').trim()) { 類型='聯繫'; 日期=c['最新追蹤日期']||''; 內容=String(c['聯繫紀錄']).trim(); }
+let 內容 = '';
+const 歷 = String(c['完整歷程']||'').split('─────').map(s=>s.trim()).filter(Boolean);
+if (歷.length) 內容 = 歷[0];
+else if (String(c['聯繫紀錄']||'').trim()) 內容 = (String(c['聯繫結果']||'').trim() ? String(c['聯繫結果']).trim()+'／' : '') + String(c['聯繫紀錄']).trim();
+else if (String(c['最新來訪記錄']||'').trim()) 內容 = String(c['最新來訪記錄']).trim();
+else if (String(c['最新追蹤內容']||'').trim()) 內容 = String(c['最新追蹤內容']).trim();
 if (!內容) return '';
 內容 = 內容.replace(/\s+/g,' ');
-if (內容.length > 60) 內容 = 內容.substring(0,60) + '…';
-return `<div class="card-latest"><b>${類型}</b>${日期?日期+'｜':''}${內容}</div>`;
+if (內容.length > 80) 內容 = 內容.substring(0,80) + '…';
+return `<div class="card-latest">${內容}</div>`;
 }
 
 function 客戶卡片(c, 待派工模式){

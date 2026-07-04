@@ -281,6 +281,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 <button class="btn-search" onclick="doSearch()">搜尋</button>
 </div>
 <div class="filter-bar">
+<select class="filter-select" id="filterStage" onchange="doSearch()">
+<option value="">全部階段</option>
+<option value="名單未聯繫">名單未聯繫</option>
+<option value="已聯繫未到場">已聯繫未到場</option>
+<option value="已到場待跟進">已到場待跟進</option>
+<option value="已下訂（待簽約）">已下訂（待簽約）</option>
+<option value="已成交">已成交</option>
+<option value="__closed__">已結案（全部）</option>
+<option value="無效結案">└ 無效結案</option>
+<option value="已退訂結案">└ 已退訂結案</option>
+<option value="已解約結案">└ 已解約結案</option>
+</select>
 <select class="filter-select" id="filterGrade" onchange="doSearch()">
 <option value="">全部等級</option>
 <option value="A">A級</option>
@@ -492,7 +504,7 @@ const dv = document.getElementById('clientDetailView'); if (dv) dv.classList.add
 const lv = document.getElementById('clientListView'); if (lv) lv.classList.remove('hidden');
 // 清空搜尋與篩選（避免下個帳號帶到上一個人的條件）
 const si = document.getElementById('searchInput'); if (si) si.value = '';
-['filterGrade','filterStatus','filterStaff'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+['filterStage','filterGrade','filterStatus','filterStaff'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
 const cl = document.getElementById('clientList'); if (cl) cl.innerHTML = '';
 // 清「填寫表單」分頁殘留（舊的查重/建立訊息與欄位）
 const dr = document.getElementById('dupResult'); if (dr) dr.innerHTML = '';
@@ -666,13 +678,16 @@ const kw = document.getElementById('searchInput').value.trim().toLowerCase();
 const grade = document.getElementById('filterGrade').value;
 const status = document.getElementById('filterStatus').value;
 const staff = document.getElementById('filterStaff').value;
+const stage = document.getElementById('filterStage').value;
+const 結案集 = ['無效結案','已退訂結案','已解約結案'];
 const filtered = allClients.filter(c => {
 const matchKw = !kw || String(c['聯絡電話']).includes(kw) || String(c['客戶姓名']).toLowerCase().includes(kw);
+const matchStage = !stage || (stage === '__closed__' ? 結案集.includes(String(c['客戶階段']||'')) : String(c['客戶階段']||'') === stage);
 const matchGrade = !grade || String(c['客戶等級']).includes(grade);
 const matchStatus = !status || String(c['是否成交']).includes(status);
 const matchStaff = !staff || 歸屬(c).includes(staff);
 // B 設計：客戶總覽只顯示「非待派工」（已派工或已結案）；待派工的客只在「待派工」分頁。
-return !是待派工(c) && matchKw && matchGrade && matchStatus && matchStaff;
+return !是待派工(c) && matchKw && matchStage && matchGrade && matchStatus && matchStaff;
 });
 顯示上限 = 80;
 renderClients(filtered);

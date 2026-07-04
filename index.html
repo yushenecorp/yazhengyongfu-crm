@@ -125,8 +125,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 .stage-dead{background:#e3e1da;color:#5f5e5a}
 .stage-none{background:#eef0f2;color:#73726c}
 .orig{font-size:11px;color:#9a9a93;font-weight:400}
-.card-latest{font-size:12px;color:#666;margin-top:8px;padding-top:8px;border-top:1px dashed #eee;line-height:1.6;word-break:break-all}
-.card-latest b{color:#1F4E79;font-weight:600;margin-right:2px}
+.card-latest{margin-top:8px;padding-top:8px;border-top:1px dashed #eee}
+.cl-row{font-size:12px;color:#666;line-height:1.6;word-break:break-all;margin-top:2px}
+.cl-row:first-child{margin-top:0}
+.cl-row b{color:#fff;background:#1F4E79;font-weight:600;font-size:10px;border-radius:4px;padding:1px 5px;margin-right:5px;vertical-align:1px}
+.cl-row b.cl-visit{background:#137333}
+.cl-date{color:#999;margin-right:2px}
 
 /* ===== 追蹤提醒 ===== */
 .badge-followup{background:#ba7517;color:#fff}
@@ -719,19 +723,39 @@ if(s==='名單未聯繫') return 'stage-new';
 return 'stage-none';
 }
 
-// 卡片最新狀況：讀「完整歷程」第一筆（後端已依時間新到舊排序，與詳情頁同一來源）
-// 歷程格式：[日期] 動作｜業務：內容。沒有歷程時退用聯繫結果/紀錄。
+// 卡片最新狀況（B方案精簡雙槽位）：從「完整歷程」取最新一筆「來人類」與「追蹤/聯繫類」各一行。
+// 顯示層瘦身：去掉業務名與通用動作字（卡片上已有），日期縮成 MM-DD，額度留給內容。
+// 類型只看動作段（[日期] 後、｜前），不掃內容文字，避免內容提到「來訪」被誤判。
+function 拆歷程(line){
+const m = String(line).match(/^\[([^\]]*)\]\s*([^：]*)(?:：([\s\S]*))?$/);
+if (!m) return { 日:'', 動:'', 內:String(line) };
+return {
+日: String(m[1]||'').trim().replace(/^\d{4}-/,''),
+動: String(m[2]||'').split('｜')[0].trim(),
+內: String(m[3]||'').trim()
+};
+}
+const _通用動作_ = ['電話追蹤','廣告聯繫','首次參觀','回訪','來訪','首參','聯繫'];
+function 摘要行(標, cls, p){
+const cut = s => { s = String(s).replace(/\s+/g,' '); return s.length>60 ? s.substring(0,60)+'…' : s; };
+let 內 = p.內 || p.動 || '';
+const 註 = (p.動 && _通用動作_.indexOf(p.動)===-1 && p.內) ? '（'+p.動+'）' : '';
+const 前綴 = (p.日?`<span class="cl-date">${p.日}</span>`:'') + 註;
+return `<div class="cl-row"><b class="${cls}">${標}</b>${前綴}${前綴?'｜':''}${cut(內)}</div>`;
+}
 function 最新狀況(c){
-let 內容 = '';
 const 歷 = String(c['完整歷程']||'').split('─────').map(s=>s.trim()).filter(Boolean);
-if (歷.length) 內容 = 歷[0];
-else if (String(c['聯繫紀錄']||'').trim()) 內容 = (String(c['聯繫結果']||'').trim() ? String(c['聯繫結果']).trim()+'／' : '') + String(c['聯繫紀錄']).trim();
-else if (String(c['最新來訪記錄']||'').trim()) 內容 = String(c['最新來訪記錄']).trim();
-else if (String(c['最新追蹤內容']||'').trim()) 內容 = String(c['最新追蹤內容']).trim();
-if (!內容) return '';
-內容 = 內容.replace(/\s+/g,' ');
-if (內容.length > 80) 內容 = 內容.substring(0,80) + '…';
-return `<div class="card-latest">${內容}</div>`;
+let 訪=null, 追=null;
+for (let i=0;i<歷.length;i++){
+const p = 拆歷程(歷[i]);
+const isVisit = p.動.indexOf('首次參觀')!==-1 || p.動.indexOf('回訪')!==-1 || p.動.indexOf('來訪')!==-1 || p.動.indexOf('首參')!==-1;
+if (isVisit) { if(!訪) 訪 = p; }
+else { if(!追) 追 = p; }
+if (訪 && 追) break;
+}
+if (!追 && String(c['聯繫紀錄']||'').trim()) 追 = { 日:'', 動:String(c['聯繫結果']||'').trim(), 內:String(c['聯繫紀錄']).trim() };
+if (!訪 && !追) return '';
+return `<div class="card-latest">${訪?摘要行('來人','cl-visit',訪):''}${追?摘要行('追蹤','',追):''}</div>`;
 }
 
 function 客戶卡片(c, 待派工模式){

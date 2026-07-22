@@ -389,7 +389,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-se
 <div class="dup-box-title">📞 快速建名單（自動查重）</div>
 <div class="dup-box-desc">輸入資料 → 先查重 → 新客戶直接建檔進「待派工」，再到「待派工」分頁分配給業務。取代手記備忘錄、避免重複。</div>
 <div class="qc-grid">
-<input type="text" id="qcPhone" placeholder="聯絡電話 *" onblur="查重提示()" />
+<input type="text" id="qcPhone" placeholder="聯絡電話 *（輸入後點其他欄位即自動查重）" onblur="查重提示()" />
 <input type="text" id="qcName" placeholder="客戶姓名 *" />
 <select id="qcArea">
 <option value="">居住區域 *</option>
@@ -1223,12 +1223,24 @@ ${hit['撞客警示']?`<div class="dup-collide">${hit['撞客警示']}</div>`:''
 }
 
 // 輸入電話後即時查重提示（只查不建）
-function 查重提示(){
+// 業務手上只有自己的客，前端查不到別人的客 → 一律再問後端（後端看得到全部），避免誤判為新客
+async function 查重提示(){
 const phone=正規化電話JS(document.getElementById('qcPhone').value);
 const box=document.getElementById('dupResult');
 if(phone.length<8){box.innerHTML='';return;}
 const hit=allClientsFull.find(c=>正規化電話JS(c['聯絡電話'])===phone);
-box.innerHTML=hit?命中卡片(hit):`<div class="dup-ok">✓ 此電話目前是新客戶（${phone}）</div>`;
+if(hit){box.innerHTML=命中卡片(hit);return;}
+box.innerHTML='<div class="dup-ok">查詢中…</div>';
+try{
+const r=await fetch(DISPATCH_URL,{method:'POST',body:JSON.stringify({token:sessionToken,action:'checkPhone',phone:phone})}).then(x=>x.json());
+if(r&&r.ok&&r.exists){
+box.innerHTML='<div class="dup-warn">⚠ 此電話已建檔（可能屬其他同仁），請洽櫃檯／管理者確認歸屬，請勿重複建檔</div>';
+}else if(r&&r.ok){
+box.innerHTML=`<div class="dup-ok">✓ 此電話目前是新客戶（${phone}），可繼續填寫下方資料</div>`;
+}else{
+box.innerHTML='<div class="dup-warn">查詢失敗，請重試</div>';
+}
+}catch(e){box.innerHTML='<div class="dup-warn">查詢失敗，請檢查網路後重試</div>';}
 }
 
 // 查重並建立：新客戶 → 直接寫入一筆「未指派」名單（進待派工，不再開表單）；既有 → 擋下顯示
